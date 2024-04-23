@@ -1,4 +1,4 @@
-# Aviris Dangermond Project
+# SHIFT Dangermond Traits vs. PFT Project
 
 This repository contains scripts and Jupyter notebooks utilized for data processing, analysis, and visualization in the Aviris Dangermond project. The repository is structured to help navigate through various phases of data manipulation, from raw data processing to detailed visualizations and analysis.
 
