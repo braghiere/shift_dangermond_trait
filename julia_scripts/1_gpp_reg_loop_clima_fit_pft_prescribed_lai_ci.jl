@@ -2,9 +2,10 @@ using NetcdfIO: append_nc!, create_nc!, read_nc
 using Distributed: @everywhere, addprocs, pmap, workers, rmprocs
 using ProgressMeter: @showprogress
 
-using Emerald.EmeraldFrontier: GriddingMachineLabels, gm_dict, spac, weather_driver
+using Emerald.EmeraldData.GlobalDatasets: LandDatasetLabels, grid_dict, grid_spac
+using Emerald.EmeraldData.WeatherDrivers: grid_weather_driver
 using Emerald.EmeraldLand.Namespace: SPACConfiguration
-using Emerald.EmeraldLand.Namespace: BetaFunction, BetaParameterG1, BetaParameterPsoil, MedlynSM
+using Emerald.EmeraldLand.Namespace: BetaFunction, BetaParameterG1, BetaParameterPsoil, BetaParameterΘ, MedlynSM
 
 using Dates
 using NetCDF
@@ -17,14 +18,16 @@ FT = Float64;
 # Define a configuration for the simulation
 #
 @info "Define a configuration for the simulation...";
-CONFIG = SPACConfiguration{Float64}(DEBUG = true, ENABLE_ENERGY_BUDGET = true, ENABLE_PLANT_HYDRAULICS = true, ENABLE_SOIL_WATER_BUDGET = true, ENABLE_SOIL_EVAPORATION = true);
+CONFIG = SPACConfiguration(Float64);
 
 #
 # You can and need to replace the traits in the dict to match the observations, you function update! for more information
 # Here I use year 2020 because the LAI data is not available for 2022 (but it will be rewritten anyway)
 #
 @info "Reading the traits data using GriddingMachine...";
-dict_shift = gm_dict(GriddingMachineLabels(year = 2020), 34.448598, -120.471551);
+#dict_shift = gm_dict(GriddingMachineLabels(year = 2020), 34.448598, -120.471551);
+dict_shift = grid_dict(LandDatasetLabels("gm2", 2020), 34.448598, -117.471551);
+dict_shift["LONGITUDE"] = -120.471551;
 dict_shift["LMA"] = 0.01;
 dict_shift["soil_color"] = 13;
 dict_shift["SOIL_N"] = [1.37 for _ in 1:4];
@@ -37,12 +40,12 @@ dict_shift["SOIL_ΘS"] = [0.46 for _ in 1:4];
 # Define a default SPAC, will be copied to each thread
 #
 @info "Define a default SPAC to work on...";
-spac_shift = spac(dict_shift, CONFIG);
-@everywhere linear_p_soil(x) = min(1, max(eps(), 1 + x / 5));
-g1 = dict_shift["MEDLYN_G1"];
-bt = BetaFunction{Float64}(FUNC = linear_p_soil, PARAM_X = BetaParameterPsoil(), PARAM_Y = BetaParameterG1());
-for leaf in spac_shift.LEAVES
-    leaf.SM = MedlynSM{Float64}(G0 = 0.005, G1 = g1, β = bt);
+spac_shift = grid_spac(CONFIG, dict_shift);
+@everywhere linear_θ_soil(x) = min(1, max(eps(), (x - 0.034) / (0.46 - 0.034)));
+g1 = dict_shift["G1_MEDLYN_C3"];
+bt = BetaFunction{Float64}(FUNC = linear_θ_soil, PARAM_X = BetaParameterΘ(), PARAM_Y = BetaParameterG1());
+for leaf in spac_shift.plant.leaves
+    leaf.flux.trait.stomatal_model = MedlynSM{Float64}(G0 = 0.005, G1 = g1, β = bt);
 end;
 
 
@@ -52,7 +55,7 @@ end;
 #
 @info "Preparing the weather driver data...";
 dict_shift["YEAR"] = 2022;
-wdrv_shift = weather_driver("wd1", dict_shift);
+wdrv_shift = grid_weather_driver("wd1", dict_shift);
 wdrv_shift.PRECIP .= 0;
 
 
@@ -61,10 +64,11 @@ wdrv_shift.PRECIP .= 0;
 #
 @info "Create workers to run the simulation...";
 if length(workers()) == 1
-    addprocs(32; exeflags = "--project");
+    #addprocs(32; exeflags = "--project");
+    addprocs(156; exeflags = "--project");
 end;
 @everywhere include("1_pmap.jl");
-@everywhere linear_p_soil(x) = min(1, max(eps(), 1 + x / 5));
+@everywhere linear_θ_soil(x) = min(1, max(eps(), (x - 0.034) / (0.46 - 0.034)));
 
 #
 # Function to run the simulation for one day or one hour
@@ -74,9 +78,9 @@ end;
 #     - the lai array
 #     - the vcmax25 array
 #
-function run_one_timestep!(day::Int, chls::Matrix, lais::Matrix, vcms::Matrix)
+function run_one_timestep!(day::Int, chls::Matrix, lais::Matrix, vcms::Matrix, lwcs::Matrix)
 #function run_one_timestep!(day::Int, chls::FT, lais::FT, vcms::FT)
-    @assert length(chls) == length(lais) == length(vcms) "Size of chls, lais, and lmas must be the same!";
+    @assert length(chls) == length(lais) == length(vcms) == length(lwcs) "Size of chls, lais, and lmas must be the same!";
 
     n = findfirst(wdrv_shift.FDOY .> day .&& wdrv_shift.RAD .> 1);
     oneday_df = wdrv_shift[n:n+23,:];
@@ -86,8 +90,8 @@ function run_one_timestep!(day::Int, chls::Matrix, lais::Matrix, vcms::Matrix)
     # prepare the data used for paralleled simulation
     params = [];
     for i in eachindex(chls)
-        if any(isnan, (chls[i], lais[i], vcms[i]))
-            push!(params, [nothing, nothing, nothing]);
+        if any(isnan, (chls[i], lais[i], vcms[i], lwcs[i]))
+            push!(params, [nothing, nothing, nothing, nothing]);
         else
             df = deepcopy(onehour_df);
             df.CHLOROPHYLL .= chls[i];
@@ -97,6 +101,7 @@ function run_one_timestep!(day::Int, chls::Matrix, lais::Matrix, vcms::Matrix)
             df.VCMAX25 .= 1.30.*chls[i] .+ 3.72;
             df.JMAX25 .= 2.49.*chls[i] .+ 10.80;
             df.LMA .= vcms[i];
+            df.LWC .= lwcs[i];
             #param = [CONFIG, deepcopy(spac_shift), df];
             param = [CONFIG, spac_shift, df];
             push!(params, param);
@@ -131,9 +136,7 @@ end;
 @info "Run the example...";
 # Given dates
 #
-dates = ["2022-02-24T00:00:00.000000", "2022-02-28T00:00:00.000000", "2022-03-08T00:00:00.000000", "2022-03-16T00:00:00.000000","2022-03-22T00:00:00.000000", "2022-04-05T00:00:00.000000", "2022-04-12T00:00:00.000000", "2022-04-20T00:00:00.000000",
-         "2022-04-29T00:00:00.000000", "2022-05-03T00:00:00.000000", "2022-05-11T00:00:00.000000", "2022-05-17T00:00:00.000000",
-         "2022-05-29T00:00:00.000000"]
+dates = ["2022-02-24T00:00:00.000000", "2022-02-28T00:00:00.000000", "2022-03-08T00:00:00.000000", "2022-03-16T00:00:00.000000","2022-03-22T00:00:00.000000", "2022-04-05T00:00:00.000000", "2022-04-12T00:00:00.000000", "2022-04-20T00:00:00.000000","2022-04-29T00:00:00.000000", "2022-05-03T00:00:00.000000", "2022-05-11T00:00:00.000000", "2022-05-17T00:00:00.000000","2022-05-29T00:00:00.000000"]
 
 # Loop through dates and calculate day of the year
 for (day_index, date) in enumerate(dates)
@@ -147,28 +150,33 @@ for (day_index, date) in enumerate(dates)
     day_str = lpad(day_index - 1, 2, '0')
     
     # Generate the file name with leading zeros and correct day index
-    chl_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/chl_aviris_dangermond_time_$(day_str)_reg.nc"
-    lai_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/lai_aviris_dangermond_time_$(day_str)_reg.nc"
-    vcm_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/lma_aviris_dangermond_time_$(day_str)_reg.nc"
+    chl_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/datasets/clima_fit_prescribed_lai_ci/mean_masked_chl_aviris_dangermond_clima_fit.nc"
+    lai_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/datasets/index/lai_aviris_dangermond_time_$(day_str)_reg.nc"
+    vcm_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/datasets/clima_fit_prescribed_lai_ci/mean_masked_lma_aviris_dangermond_clima_fit.nc"
+    lwc_file = "/net/squid/data3/data/FluoData1/students/renato/aviris_dangermond/traits/datasets/clima_fit_prescribed_lai_ci/mean_masked_lwc_aviris_dangermond_clima_fit.nc"
+    
 
 
     chls_1 = read_nc(FT, chl_file, "chl")
     lais_1 = read_nc(FT, lai_file, "lai")
     vcms_1 = read_nc(FT, vcm_file, "lma")
+    lwcs_1 = read_nc(FT, lwc_file, "lwc")
 
     # Extract the data arrays from the files (adjust the indices accordingly)
     chls_data = chls_1[1:492,1:458,1]
     lais_data = lais_1[1:492,1:458,1]
     vcms_data = vcms_1[1:492,1:458,1]
+    lwcs_data = lwcs_1[1:492,1:458,1]
     #chls_data = chls_1[201:210,201:210,1]
     #lais_data = lais_1[201:210,201:210,1]
     #vcms_data = vcms_1[201:210,201:210,1]
 
     # Run the simulation for the current day
-    gpps, sifs740, sifs683, sifs757, sifs771, transps = run_one_timestep!(day_of_year, chls_data, lais_data, vcms_data)
+    gpps, sifs740, sifs683, sifs757, sifs771, transps = run_one_timestep!(day_of_year, chls_data, lais_data, vcms_data, lwcs_data)
 
     # Save the results to a netCDF file
-    ncresult = "shift_fluxes_day_$(day_str)_reg_jmax.nc"
+    ncresult = "/net/fluo/data3/data/FluoData1/students/renato/aviris_dangermond/fitting/fitted_prescribed_lai_ci/pft_shift_fluxes_day_$(day_str)_clima_fit_reg_jmax.nc"
+    
     #lats_1 = read_nc(FT, chls_file, "lat")[1:size(chls_data, 2)]
     #lons_1 = read_nc(FT, chls_file, "lon")[1:size(chls_data, 1)]
 
