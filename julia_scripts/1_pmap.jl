@@ -1,5 +1,5 @@
-using Emerald.EmeraldFrontier: simulation!
-using Emerald.EmeraldLand.SPAC: update!
+using Emerald.EmeraldFrontier: DF_SIMULATIONS, DF_VARIABLES, simulation!
+# using Emerald.EmeraldLand.SPAC: update!
 using Base.GC
 
 
@@ -12,7 +12,16 @@ function run_shift_simulation!(param::Vector)
     #spac = param[2];
     spac = deepcopy(param[2]);
     df = param[3];
-    simulation!(config, spac, df; initialial_state = true);
+
+    # add the fields to store outputs
+    for label in DF_VARIABLES
+        df[!,label] .= 0.0;
+    end;
+    for label in DF_SIMULATIONS
+        df[!,label] .= NaN;
+    end;
+
+    simulation!(config, spac, df; initialize_state = true);
     
     spac = nothing;
     

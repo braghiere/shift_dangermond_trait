@@ -1,0 +1,50 @@
+
+
+1) Extracting traits: 
+
+$ conda activate shape_clip
+$ python extract_all_vars.py
+
+2) Regridding traits from 5m to 1km:
+
+$ regrid_all.sh
+
+3) Run the PFT based maps:
+
+$ python pft_trait_map_all.py 
+
+**) We are regridding the original AVIRIS trait map to the resolution of the PFT map
+
+$ cdo remapbil,../California_Vegetation_WHRTYPE_Dangermond/output_latlon.nc  chl_aviris_dangermond_time_00.nc chl_aviris_dangermond_time_00_reg.nc
+
+Date June 27, 2024
+
+The order of scripts for the new fitted data with prescribed LAI:
+
+1) Prepare the trait files (chl,lma,lai):
+
+$ python prepare_fitted_traits_prescribed_lai.ipynb
+
+2) Prepare the PFT filtered files and plot the histograms:
+
+$ python pft_trait_map_all_fit_prescribed_lai.ipynb
+
+Date July 15, 2024
+
+3) Plot trait maps:
+
+$ python plt_chl_gifs_fit_lai_ci.ipynb
+
+$ python plt_lma_gifs_fit_lai_ci.ipynb
+
+4) Plot GPP and SIF maps and trends:
+
+$ plot_gpp_sif_prescribed_lai_ci.ipynb
+
+$ plot_gpp_difference_clima_fit_prescribed_lai_ci.ipynb
+
+
+
+
+
+
