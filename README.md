@@ -47,6 +47,19 @@ Clone the repository and navigate to the desired directory to run specific scrip
 ```bash
 git clone https://github.com/braghiere/shift_dangermond_trait.git
 cd shift_dangermond_trait
+```
+## Data Availability 
+
+The datasets used in this study are accessible at the Caltech Data Library under https://doi.org/10.22002/z15fj-44h89, including the SHIFT AVIRIS-NG dataset for the Dangermond Preserve at 30m resolution, which provides detailed spectral reflectance information across 399 wavelengths. This also includes TROPOMI sun-induced fluorescence data at 740 nm, CliMA Land model outputs of ecosystem fluxes, and trait variations for different plant functional types. These datasets cover the period from February to May 2022.
+
+The Level 2A (L2A) unrectified surface reflectance images from NASA's Airborne Visible / Infrared Imaging Spectrometer-Next Generation (AVIRIS-NG) instrument, collected as part of the Surface Biology and Geology High-Frequency Time Series (SHIFT) campaign during February to May 2022, including reflected radiance at 5-nm intervals in the Visible to Shortwave Infrared (VSWIR) spectral range from 380-2510 nm, can be found at https://doi.org/10.3334/ORNLDAAC/2183 (Brodrick et al., 2023).
+
+The California Multi-Source Vegetation Layer, specifically depicting Wildlife Habitat Relationship classes (WHRTYPE) (California Department of Forestry and Fire Protection, 2014), is available at https://gis.data.ca.gov/maps/CALFIRE-Forestry::california-vegetation-whrtype/about.
+
+The CliMA Land model used to simulate surface hyperspectral reflectance and transmittance, energy, and carbon fluxes is available at https://github.com/CliMA/Land.
+
+The codes used in the analysis presented in this paper are available on GitHub and can be accessed at https://github.com/braghiere/shift_dangermond_trait/.
+
 
 ## References
 
@@ -57,5 +70,4 @@ Chadwick, K. D., Davis, F., Miner, K. R., Pavlick, R., Reynolds, M., Townsend, P
 Queally, N., Davis, F. W., Chadwick, K. D., Ade, C., Anderegg, L., Angel, Y., Baker, B., Boving, I., Braghiere, R. K., Brodrick, P., Campbell, P., Cryer, J., Cushman, K. C., Dao, P. D., Dibartolo, A., Eckert, R., Grant, K., Heberlein, B., Johnson, M., … Schimel, D. S. (2024). SHIFT: Vegetation Plot Characterization, Santa Barbara County, CA, 2022. ORNL Distributed Active Archive Center. https://doi.org/10.3334/ORNLDAAC/2295
 
 Nature Conservancy (2022). Lidar Survey of Dangermond Preserve, CA. OpenTopography. https://doi.org/10.5069/G9T43R8K
-
 
