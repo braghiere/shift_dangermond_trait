@@ -1,0 +1,27 @@
+================================================================================
+TOPOGRAPHY vs. TRAITS CORRELATION ANALYSIS SUMMARY
+================================================================================
+
+Analysis Date: 2025-11-26 15:10:13
+Study Area: Dangermond Preserve, California
+Grid Size: 458 x 492 pixels
+Topographic Variables: elevation, slope, aspect
+Plant Traits: Chlorophyll, LMA, LWC
+
+--------------------------------------------------------------------------------
+
+topo_variable       trait  pearson_r     pearson_p  r_squared  n_pixels significance
+    Elevation Chlorophyll   0.391331  0.000000e+00   0.153140    107250          ***
+    Elevation         LMA   0.169094  0.000000e+00   0.028593    107250          ***
+    Elevation         LWC   0.106193 1.756863e-266   0.011277    107250          ***
+        Slope Chlorophyll   0.340156  0.000000e+00   0.115706    107192          ***
+        Slope         LMA   0.233085  0.000000e+00   0.054329    107192          ***
+        Slope         LWC   0.183246  0.000000e+00   0.033579    107192          ***
+       Aspect Chlorophyll   0.012505  1.438439e-04   0.000156     92411          ***
+       Aspect         LMA   0.017743  6.892006e-08   0.000315     92411          ***
+       Aspect         LWC   0.025149  2.072535e-14   0.000632     92411          ***
+
+--------------------------------------------------------------------------------
+Significance: *** p<0.001, ** p<0.01, * p<0.05, ns = not significant
+
+================================================================================
