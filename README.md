@@ -1,44 +1,97 @@
 # SHIFT Dangermond Traits vs. PFT Project
 
-This repository contains scripts and Jupyter notebooks utilized for data processing, analysis, and visualization in the SHIFT Dangermond Traits vs. PFT project. The repository is structured to help navigate through various phases of data manipulation, from raw data processing to detailed visualizations and analysis.
+This repository contains scripts and Jupyter notebooks for data processing, analysis, and visualization comparing trait-based vs. PFT-based approaches in the SHIFT Dangermond campaign (February-May 2022).
 
 ## Repository Structure
 
-### `data_processing/`
-Scripts dedicated to initial data manipulation, including clipping and regridding operations. Essential for preparing the data for further analysis.
+### 📁 `notebooks/`
+Jupyter notebooks organized by function:
 
-- `clip_dangermond.py`: Clips data to a specified region.
-- `regrid_netcdf.py`: Regrids data from one spatial resolution to another.
-- `clip_dangermond_updated.py`: Updated version of the initial clipping script.
-- `regrid_script.py`: Another script for regridding data with additional functionality.
-- `spatial_ref_dangermond.py`: Sets spatial references for datasets.
+#### `final/` - Publication Figures
+- `figure_3_combined_traits_temporal.ipynb` - Figure 3: Temporal dynamics of leaf traits
+- `figure_5_spatial_trait_maps.ipynb` - Figure 5: Spatial distribution of traits
+- `figure_6_updated_clean.ipynb` - Figure 6: GPP and SIF comparisons with density insets
+- `figures_S1_S2_final.ipynb` - Supplementary Figures S1/S2: Chl and LMA temporal comparisons
+- `topography_trait_correlation_full_updated.ipynb` - Topography-trait relationships
 
-### `analysis/`
-Contains scripts that perform complex data analysis tasks, including statistical comparisons and trait extraction.
+#### `validation/` - Model Validation
+- `compare_sif_all_lr_week_prescribed_lai_ci.ipynb` - SIF validation against TROPOMI
+- `plot_gpp_sif_fit_prescribed_lai_ci.ipynb` - GPP/SIF temporal validation
 
-- Various `compare_*.py` scripts: Perform statistical comparisons across different data metrics like solar-induced fluorescence and plant functional traits.
-- `extract_*.py` scripts: Extract specific traits or variables from datasets.
-- `pft_trait_map_all.py` and `pft_trait_map.py`: Map and analyze plant functional traits.
+#### `trait_analysis/` - Trait Analysis
+- `pft_trait_map_all_fit_prescribed_lai_ci.ipynb` - PFT-based trait mapping
+- `plot_trait.ipynb` - Individual trait visualization
+- `plsr_trait_histograms.ipynb` - PLSR trait distribution analysis
 
-### `plotting/`
-Scripts for generating plots and visual representations of data.
+#### `processing/` - Data Processing
+- `prepare_fitted_traits_prescribed_lai_ci.ipynb` - Prepare fitted trait datasets
+- `plot_cumulative_gpp.ipynb` - Cumulative GPP calculations
+- `plot_gpp_difference_clima_fit_prescribed_lai_ci.ipynb` - GPP difference maps
 
-- `plot_trait_pdf.py`: Generates PDFs of plant traits plots.
+#### `exploratory/` - Exploratory Analysis
+- `plot_hyperspectral_curves.ipynb` - Hyperspectral reflectance curves
+- `plt_*_gifs*.ipynb` - Animated GIFs of trait evolution
 
-### `julia_scripts/`
-Julia language scripts for specific analytical tasks, providing efficient computation and processing capabilities.
+#### `archive/` - Deprecated/Old Versions
+- Historical notebooks and superseded analyses
 
-- Scripts like `1_gpp.jl` and `shift_spectra.jl`: Focus on gross primary productivity calculations and spectral data analysis.
+### 📁 `figures/`
+Generated figures organized into:
+- `publication/` - Final publication-ready figures (300 & 600 DPI)
+- `working/` - Intermediate figures from active analysis
+- `archive/` - Old figure versions
 
-### `shell_scripts/`
-Shell scripts to automate routine tasks such as data merging and regridding.
+### 📁 `src/`
+Shared Python utilities (NEW):
+- `data_loading.py` - Standard functions for loading NetCDF datasets, PFT maps, and flux data
+- `plotting_utils.py` - Publication-quality plotting functions with consistent styling
+- `__init__.py` - Package initialization
 
-- Scripts such as `clip_bash.sh` and `regrid_files.sh`: Help in automating the workflow and data management.
+### 📁 `data_processing/`
+Data preparation scripts:
+- `clip_dangermond.py`, `clip_dangermond_updated.py` - Clip data to study region
+- `regrid_netcdf.py`, `regrid_script.py` - Regrid to consistent resolution
+- `spatial_ref_dangermond.py` - Set spatial references
 
-### `notebooks/`
-Jupyter notebooks that provide interactive environments to explore and visualize data dynamically.
+### 📁 `analysis/`
+Analysis scripts:
+- `compare_*.py` - Statistical comparisons (SIF, GPP, traits)
+- `extract_*.py` - Extract specific variables
+- `pft_trait_map*.py` - PFT-trait mapping
 
-- Notebooks like `plot_hyperspectral_curves.ipynb` and `plt_chl_gifs.ipynb`: Offer detailed and interactive visual analysis of the data.
+### 📁 `plotting/`
+Plotting scripts:
+- `plot_trait_pdf.py` - Generate trait PDFs
+
+### 📁 `julia_scripts/`
+Julia scripts for CliMA Land model:
+- `1_gpp.jl`, `shift_spectra.jl` - GPP calculations and spectral analysis
+
+### 📁 `shell_scripts/`
+Automation scripts:
+- `clip_bash.sh`, `regrid_files.sh` - Batch processing
+
+## Key Datasets
+
+**13 AVIRIS-NG Flight Dates** (2022):
+- Day 0: Feb 24 (campaign start)
+- Days 1-11: Mar 4 - May 13
+- Day 12: May 29 (campaign end)
+
+**Plant Functional Types (PFTs)**:
+- PFT 2: Scrub (blue)
+- PFT 3: Chaparral (green)
+- PFT 4: Woodland (orange)
+
+**Analyzed Traits**:
+- Chlorophyll content (Chl) - µg/cm²
+- Leaf mass per area (LMA) - g/m²
+- Leaf water content (LWC) - g/cm²
+- Carotenoid content (Car) - µg/cm²
+
+**Model Outputs**:
+- Gross Primary Productivity (GPP) - µmol/m²/s
+- Solar-Induced Fluorescence (SIF) - mW/m²/sr/nm
 
 ## Usage
 
