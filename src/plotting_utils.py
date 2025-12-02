@@ -8,6 +8,7 @@ publication-quality figures with consistent styling.
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
+from matplotlib.colorbar import Colorbar
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from typing import Dict, Tuple, Optional
 
@@ -259,7 +260,7 @@ def add_coastlines(ax, lons: np.ndarray, lats: np.ndarray,
 def create_trait_colorbar(im, ax, label: str, unit: str,
                           orientation: str = 'vertical',
                           fontsize_label: int = 17,
-                          fontsize_ticks: int = 14) -> plt.Colorbar:
+                          fontsize_ticks: int = 14) -> Colorbar:
     """
     Create a standardized colorbar for trait maps.
     
