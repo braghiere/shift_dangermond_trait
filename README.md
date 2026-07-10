@@ -24,6 +24,12 @@ Contains scripts that perform complex data analysis tasks, including statistical
 Scripts for generating plots and visual representations of data.
 
 - `plot_trait_pdf.py`: Generates PDFs of plant traits plots.
+- `figure_2_schematic_panels.py`: Regenerates the six raster panels of the Figure 2 workflow schematic (CHL/LMA/LWC trait maps, GPP/SIF flux maps, PFT reflectance spectrum) with print-legible fonts.
+- `figure_2_schematic.py`: Assembles the six panels into the complete Figure 2 workflow schematic (`figures/figure2_schematic.png` / `.pdf`).
+- `figure_4_seasonal_histograms.py`: Builds the Figure 4 seasonal (Early/Mid/Late) trait histograms by PFT.
+- `figure_5_spatial_trait_maps_legible.py`: Regenerates Figure 5 (spatial trait maps) with enlarged axis/colorbar scale numbers.
+
+Figure outputs are written to `figures/`.
 
 ### `julia_scripts/`
 Julia language scripts for specific analytical tasks, providing efficient computation and processing capabilities.
