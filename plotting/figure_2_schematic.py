@@ -100,7 +100,7 @@ def _scalebar(ax, km=3):
     ax.text(x0 + dlon / 2, y0 + 0.02 * HY, f'{km} km', ha='center', va='bottom', fontsize=5, zorder=6)
 
 def _north(ax):
-    x = XLIM[0] + 0.07 * WX; y0 = YLIM[1] - 0.32 * HY; dy = 0.15 * HY   # upper-left
+    x = XLIM[1] - 0.09 * WX; y0 = YLIM[1] - 0.30 * HY; dy = 0.14 * HY   # upper-right (scale-bar side)
     ax.annotate('', xy=(x, y0 + dy), xytext=(x, y0),
                 arrowprops=dict(arrowstyle='-|>', color='black', lw=1.0), zorder=6)
     ax.text(x, y0 + dy + 0.008 * HY, 'N', ha='center', va='bottom', fontsize=5, fontweight='bold', zorder=6)
@@ -137,8 +137,8 @@ add_map(LX, 0.645, chl, 'YlGn',   0, 80,  'Chlorophyll Content', r'$\mu$g cm$^{-
 add_map(LX, 0.353, lma, 'YlOrBr', 0, 250, 'Leaf Mass per Area',  r'g m$^{-2}$',             show_lat=True)
 add_map(LX, 0.061, lwc, 'Blues',  0, 1.5, 'Leaf Water Content',  r'g cm$^{-2}$ ($\times$10$^{-2}$)', show_lat=True, show_lon=True)
 # Flux column (right) — mirrors the trait column's full height
-add_map(RX, 0.645, gpp, 'viridis', 0, 12,  'GPP',        r'$\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$', deco=True)
-add_map(RX, 0.061, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True)
+add_map(RX, 0.553, gpp, 'viridis', 0, 12,  'GPP',        r'$\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$', deco=True)
+add_map(RX, 0.153, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True)
 
 # ---------------- reflectance spectrum (symmetric top-left of centre) ----------------
 rds = xr.open_dataset(REFL_FILE, decode_times=False)
@@ -149,7 +149,7 @@ ATM = [(1340, 1450), (1800, 1950)]
 gap = np.zeros_like(wl, bool)
 for lo, hi in ATM:
     gap |= (wl >= lo) & (wl <= hi)
-sp = fig.add_axes([0.3125, 0.700, 0.175, 0.150])   # centre 0.400
+sp = fig.add_axes([0.3125, 0.725, 0.175, 0.150])   # centre 0.400
 pcol = {2: '#2E7D32', 3: '#1565C0', 4: '#C62828'}; pname = {2: 'PFT 1', 3: 'PFT 2', 4: 'PFT 3'}
 for lo, hi in ATM:
     sp.axvspan(lo, hi, color='0.88', zorder=0)
@@ -173,7 +173,7 @@ sp.legend(fontsize=5.5, ncol=3, loc='upper center', bbox_to_anchor=(0.5, 1.0),
 rng = np.random.default_rng(0)
 n = 1100; cx = rng.uniform(0, 1, n); cy = rng.uniform(0, 1, n)
 ht = (0.5 + 0.5 * np.sin(6 * cx) * np.cos(6 * cy)) * rng.uniform(0.35, 1.0, n) * 12.0
-lax = fig.add_axes([0.515, 0.690, 0.170, 0.180], projection='3d')   # centre 0.600
+lax = fig.add_axes([0.515, 0.710, 0.170, 0.180], projection='3d')   # centre 0.600
 scat = lax.scatter(cx, cy, ht, c=ht, cmap='viridis', vmin=0, vmax=12, s=3.0, depthshade=True, edgecolors='none')
 lax.view_init(elev=24, azim=-60)
 lax.set_xlim(0, 1); lax.set_ylim(0, 1); lax.set_zlim(0, 12)
@@ -187,7 +187,7 @@ try:
     lax.set_box_aspect((1, 1, 0.55), zoom=1.25)
 except TypeError:
     lax.set_box_aspect((1, 1, 0.55))
-lcax = fig.add_axes([0.690, 0.712, 0.011, 0.095])
+lcax = fig.add_axes([0.690, 0.732, 0.011, 0.095])
 lcb = fig.colorbar(scat, cax=lcax)
 lcb.set_label('Canopy height (m)', fontsize=FS_CB, labelpad=1)
 lcb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8); lcb.outline.set_linewidth(0.5)
@@ -233,7 +233,8 @@ def ln(xs, ys):
     ov.plot(xs, ys, color=TEAL, lw=2.2, zorder=3, solid_capstyle='round')
 
 def brace(x, y0, y1, tick):
-    ln([x, x], [y0, y1]); ln([x, x + tick], [y0, y0]); ln([x, x + tick], [y1, y1])
+    ov.plot([x + tick, x, x, x + tick], [y1, y1, y0, y0], color=TEAL, lw=2.2, zorder=3,
+            solid_capstyle='round', solid_joinstyle='round')
 
 CY = 0.45; HT = CY + 0.066 * FASP; HB = CY - 0.066 * FASP
 hub(0.5, CY, 'CliMA\nLand')
@@ -244,20 +245,21 @@ tag(0.600, 0.945, 'LiDAR clumping index', fs=8)
 tag(0.108, 0.945, 'Traits'); tag(0.850, 0.945, 'Fluxes')
 ov.text(0.500, 0.780, '+', ha='center', va='center', fontsize=17, fontweight='bold', color=TEAL, zorder=6)
 
-# inverse <-> hub : two clearly separated arrows
-arr((0.390, CY + 0.019), (0.434, CY + 0.019))
-arr((0.434, CY - 0.019), (0.390, CY - 0.019))
-# hub -> forward
-arr((0.566, CY), (0.610, CY))
-# (1) AVIRIS spectrum + LiDAR -> hub ; symmetric about x=0.5, + and 1 aligned
-ln([0.455, 0.455], [0.655, 0.600]); ln([0.545, 0.545], [0.690, 0.600]); ln([0.455, 0.545], [0.600, 0.600])
-arr((0.5, 0.600), (0.5, HT)); badge(0.5, 0.600, 1)
+# inverse <-> hub : two arrows, gapped from both the box and the hub
+arr((0.397, CY + 0.019), (0.430, CY + 0.019))
+arr((0.430, CY - 0.019), (0.397, CY - 0.019))
+# hub -> forward (gapped)
+arr((0.572, CY), (0.604, CY))
+# (1) AVIRIS spectrum + LiDAR -> hub ; symmetric about x=0.5, rounded corners
+ov.plot([0.455, 0.455, 0.545, 0.545], [0.700, 0.595, 0.595, 0.705], color=TEAL, lw=2.2,
+        zorder=3, solid_capstyle='round', solid_joinstyle='round')
+arr((0.5, 0.595), (0.5, HT)); badge(0.5, 0.595, 1)
 # (2) traits -> inverse
 brace(0.248, BOT, TOP, -0.010); arr((0.248, CY), (0.270, CY)); badge(0.335, CY + 0.0575, 2)
 # (3) ERA5 -> hub
 arr((0.5, 0.200), (0.5, HB)); badge(0.5, 0.290, 3)
 # (4) forward -> fluxes
-brace(0.752, BOT, TOP, 0.010); arr((0.752, CY), (0.730, CY)); badge(0.665, CY + 0.0575, 4)
+brace(0.752, 0.153, 0.768, 0.010); arr((0.752, CY), (0.730, CY)); badge(0.665, CY + 0.0575, 4)
 tag(0.5, 0.170, 'ERA5 reanalysis')
 
 for ext in ('pdf', 'png'):
