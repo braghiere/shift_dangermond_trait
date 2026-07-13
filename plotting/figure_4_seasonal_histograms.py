@@ -21,9 +21,9 @@ warnings.filterwarnings('ignore')
 
 plt.rcParams.update({
     'font.family': 'Nimbus Sans',
-    'font.size': 16, 'axes.labelsize': 18, 'axes.titlesize': 19,
-    'xtick.labelsize': 15, 'ytick.labelsize': 15,
-    'legend.fontsize': 13.5, 'axes.labelweight': 'bold',
+    'font.size': 14, 'axes.labelsize': 15,
+    'xtick.labelsize': 13, 'ytick.labelsize': 13,
+    'legend.fontsize': 11, 'axes.labelweight': 'bold',
     'mathtext.fontset': 'custom', 'mathtext.rm': 'Nimbus Sans',
     'mathtext.it': 'Nimbus Sans:italic', 'mathtext.bf': 'Nimbus Sans:bold',
 })
@@ -100,7 +100,7 @@ for v in TRAIT_VARS:
 
 def make_figure(season):
     times, subtitle, tag = SEASONS[season]
-    fig, axes = plt.subplots(1, 3, figsize=(15.0, 5.6), dpi=150)
+    fig, axes = plt.subplots(1, 3, figsize=(12.0, 3.8), dpi=150)
     for ci, v in enumerate(TRAIT_VARS):
         ax = axes[ci]
         for p in PFT_VALUES:
@@ -111,25 +111,25 @@ def make_figure(season):
             mu, sd = np.nanmean(vals), np.nanstd(vals)
             col = PFT_COLORS[p]
             ax.hist(vals, bins=bins[v], density=True, histtype='stepfilled', color=col, alpha=0.35, lw=0)
-            ax.hist(vals, bins=bins[v], density=True, histtype='step', color=col, lw=2.0,
+            ax.hist(vals, bins=bins[v], density=True, histtype='step', color=col, lw=1.8,
                     label=f'{PFT_NAMES[p]}: {mu:.2f} ± {sd:.2f}')
-            ax.axvline(mu, color=col, ls='--', lw=2.2, alpha=0.9)
-        ax.set_title(TRAIT_NAME[v], fontsize=16, fontweight='bold', pad=4)
+            ax.axvline(mu, color=col, ls='--', lw=2.0, alpha=0.9)
         ax.set_xlabel(TRAIT_UNIT[v], fontweight='bold')
         ax.set_ylabel('Density', fontweight='bold')
         if v == 'lma':
-            ax.set_yscale('log')
+            ax.set_yscale('log'); ax.set_ylim(top=ax.get_ylim()[1] * 3.0)
+        else:
+            ax.set_ylim(top=ax.get_ylim()[1] * 1.4)          # headroom for the legend
         ax.tick_params(length=3, width=0.8)
         ax.grid(True, alpha=0.3, ls='--', lw=0.5)
-        # panel letter OUTSIDE the plot, upper-left
-        ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(-2, 14),
-                    textcoords='offset points', fontsize=19, fontweight='bold', va='bottom', ha='left')
-        # legend BELOW the panel so it never overlaps the histograms or the dashed mean lines
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.28), ncol=1, frameon=True,
-                  fancybox=True, framealpha=0.95, fontsize=12, handlelength=1.4, borderpad=0.5)
-    # season title (larger than the trait titles), tucked close above them
-    fig.suptitle(subtitle, fontsize=22, fontweight='bold', y=0.95)
-    fig.subplots_adjust(left=0.055, right=0.985, top=0.84, bottom=0.30, wspace=0.30)
+        # panel letter on top of / aligned with the y-axis
+        ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(0, 5),
+                    textcoords='offset points', fontsize=18, fontweight='bold', va='bottom', ha='center')
+        # legend INSIDE, upper-right (clear of the left-side mean lines and the peaks)
+        ax.legend(loc='upper right', fontsize=11, frameon=True, framealpha=0.9, fancybox=True,
+                  handlelength=1.3, borderpad=0.4, labelspacing=0.3)
+    fig.suptitle(subtitle, fontsize=20, fontweight='bold', y=0.99)
+    fig.subplots_adjust(left=0.07, right=0.985, top=0.82, bottom=0.17, wspace=0.26)
     stem = FIG_DIR / f'trait_histograms_{tag}'
     fig.savefig(f'{stem}.png', dpi=300, bbox_inches='tight', facecolor='white')
     fig.savefig(f'{stem}.pdf', bbox_inches='tight', facecolor='white')
