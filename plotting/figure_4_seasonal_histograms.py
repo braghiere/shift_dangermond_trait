@@ -100,7 +100,7 @@ for v in TRAIT_VARS:
 
 def make_figure(season):
     times, subtitle, tag = SEASONS[season]
-    fig, axes = plt.subplots(1, 3, figsize=(15.0, 5.0), dpi=150)
+    fig, axes = plt.subplots(1, 3, figsize=(15.0, 5.6), dpi=150)
     for ci, v in enumerate(TRAIT_VARS):
         ax = axes[ci]
         for p in PFT_VALUES:
@@ -114,18 +114,22 @@ def make_figure(season):
             ax.hist(vals, bins=bins[v], density=True, histtype='step', color=col, lw=2.0,
                     label=f'{PFT_NAMES[p]}: {mu:.2f} ± {sd:.2f}')
             ax.axvline(mu, color=col, ls='--', lw=2.2, alpha=0.9)
-        ax.set_title(TRAIT_NAME[v], fontweight='bold', pad=8)
+        ax.set_title(TRAIT_NAME[v], fontsize=16, fontweight='bold', pad=4)
         ax.set_xlabel(TRAIT_UNIT[v], fontweight='bold')
         ax.set_ylabel('Density', fontweight='bold')
         if v == 'lma':
             ax.set_yscale('log')
         ax.tick_params(length=3, width=0.8)
         ax.grid(True, alpha=0.3, ls='--', lw=0.5)
-        ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(4, -4),
-                    textcoords='offset points', fontsize=19, fontweight='bold', va='top', ha='left')
-        ax.legend(loc='upper right', frameon=True, fancybox=True, framealpha=0.9)
-    fig.suptitle(subtitle, fontsize=18, fontweight='bold', y=1.02)  # season only; figure number is set by the caption
-    fig.tight_layout()
+        # panel letter OUTSIDE the plot, upper-left
+        ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(-2, 14),
+                    textcoords='offset points', fontsize=19, fontweight='bold', va='bottom', ha='left')
+        # legend BELOW the panel so it never overlaps the histograms or the dashed mean lines
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.28), ncol=1, frameon=True,
+                  fancybox=True, framealpha=0.95, fontsize=12, handlelength=1.4, borderpad=0.5)
+    # season title (larger than the trait titles), tucked close above them
+    fig.suptitle(subtitle, fontsize=22, fontweight='bold', y=0.95)
+    fig.subplots_adjust(left=0.055, right=0.985, top=0.84, bottom=0.30, wspace=0.30)
     stem = FIG_DIR / f'trait_histograms_{tag}'
     fig.savefig(f'{stem}.png', dpi=300, bbox_inches='tight', facecolor='white')
     fig.savefig(f'{stem}.pdf', bbox_inches='tight', facecolor='white')
