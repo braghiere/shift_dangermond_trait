@@ -105,7 +105,7 @@ def _north(ax):
                 arrowprops=dict(arrowstyle='-|>', color='black', lw=1.0), zorder=6)
     ax.text(x, y0 + dy + 0.008 * HY, 'N', ha='center', va='bottom', fontsize=5, fontweight='bold', zorder=6)
 
-def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=False, deco=False):
+def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=False, deco=False, cbpad=1):
     ax = fig.add_axes([x, b, MW, MH])
     cm = plt.get_cmap(cmap).copy(); cm.set_bad(alpha=0)
     im = ax.pcolormesh(LON, LAT, data, cmap=cm, vmin=vmin, vmax=vmax, shading='auto', rasterized=True)
@@ -126,7 +126,7 @@ def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=F
     ax.set_title(name, fontsize=FS_TITLE, fontweight='bold', pad=3)
     cax = fig.add_axes([x + MW + CB_GAP, b + 0.10 * MH, CB_W, 0.80 * MH])
     cb = fig.colorbar(im, cax=cax)
-    cb.set_label(unit, fontsize=FS_CB, labelpad=1); cb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8)
+    cb.set_label(unit, fontsize=FS_CB, labelpad=cbpad); cb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8)
     cb.outline.set_linewidth(0.5)
     if deco:
         _scalebar(ax); _north(ax)
@@ -138,7 +138,7 @@ add_map(LX, 0.353, lma, 'YlOrBr', 0, 250, 'Leaf Mass per Area',  r'g m$^{-2}$', 
 add_map(LX, 0.061, lwc, 'Blues',  0, 1.5, 'Leaf Water Content',  r'g cm$^{-2}$ ($\times$10$^{-2}$)', show_lat=True, show_lon=True)
 # Flux column (right) — mirrors the trait column's full height
 add_map(RX, 0.553, gpp, 'viridis', 0, 12,  'GPP',        r'$\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$', deco=True)
-add_map(RX, 0.153, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True)
+add_map(RX, 0.153, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True, cbpad=5)
 
 # ---------------- reflectance spectrum (symmetric top-left of centre) ----------------
 rds = xr.open_dataset(REFL_FILE, decode_times=False)
@@ -198,7 +198,7 @@ lcb.set_label('Canopy height (m)', fontsize=FS_CB, labelpad=1)
 lcb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8); lcb.outline.set_linewidth(0.5)
 
 # ---------------- ERA5 climograph (bottom) ----------------
-ea = fig.add_axes([0.407, 0.016, 0.186, 0.132])
+ea = fig.add_axes([0.398, 0.013, 0.205, 0.145])
 xpos = np.arange(len(ERA_MONTHS))
 ea.bar(xpos, ERA_P, width=0.62, color=PBLUE, alpha=0.65)
 ea.set_ylabel('P (mm)', color=PBLUE, fontsize=FS_CB, labelpad=1); ea.set_ylim(0, max(ERA_P) * 1.25)
