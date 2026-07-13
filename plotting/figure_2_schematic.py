@@ -155,11 +155,16 @@ for lo, hi in ATM:
     sp.axvspan(lo, hi, color='0.88', zorder=0)
 sp.axvspan(636, 673, color='#C62828', alpha=0.10, zorder=0)
 sp.axvspan(851, 879, color='#7B4A12', alpha=0.10, zorder=0)
+mus = {p: np.nanmean(refl[pft == p], 0) for p in [2, 3, 4]}
+sds = {p: np.nanstd(refl[pft == p], 0) for p in [2, 3, 4]}
+grand = np.nanmean(np.vstack([mus[p] for p in [2, 3, 4]]), 0)
+K = 4.0  # schematic: exaggerate inter-PFT differences (real deviations x4) to highlight
+         # the distinct spectral features that make trait retrieval possible
 for p in [2, 3, 4]:
-    vals = refl[pft == p]
-    mu = np.nanmean(vals, 0); sd = np.nanstd(vals, 0)
-    sp.fill_between(wl, mu - sd, mu + sd, where=~gap, color=pcol[p], alpha=0.15, lw=0)
-    sp.plot(wl, np.where(gap, np.nan, mu), color=pcol[p], lw=1.3, label=pname[p])
+    ex = np.clip(grand + K * (mus[p] - grand), 0.005, 0.6)
+    band = 0.25 * sds[p]
+    sp.fill_between(wl, ex - band, ex + band, where=~gap, color=pcol[p], alpha=0.12, lw=0)
+    sp.plot(wl, np.where(gap, np.nan, ex), color=pcol[p], lw=1.6, label=pname[p])
 sp.set_xlim(wl.min(), wl.max()); sp.set_ylim(0, 0.45)
 sp.set_xlabel('Wavelength (nm)', fontsize=FS_CB, fontweight='bold', labelpad=1)
 sp.set_ylabel('Reflectance', fontsize=FS_CB, fontweight='bold', labelpad=1)
@@ -179,7 +184,7 @@ lax.view_init(elev=24, azim=-60)
 lax.set_xlim(0, 1); lax.set_ylim(0, 1); lax.set_zlim(0, 12)
 lax.set_xticks([0, 1]); lax.set_yticks([0, 1]); lax.set_zticks([])
 lax.set_xticklabels([]); lax.set_yticklabels([])
-lax.set_xlabel('x', fontsize=6, labelpad=-15); lax.set_ylabel('y', fontsize=6, labelpad=-15)
+lax.set_xlabel('x', fontsize=6, labelpad=-24); lax.set_ylabel('y', fontsize=6, labelpad=-24)
 for axis in (lax.xaxis, lax.yaxis, lax.zaxis):
     axis.pane.set_facecolor('white'); axis.pane.set_alpha(0.25); axis.pane.set_edgecolor('0.75')
 lax.grid(True)
@@ -251,7 +256,7 @@ arr((0.430, CY - 0.019), (0.397, CY - 0.019))
 # hub -> forward (gapped)
 arr((0.572, CY), (0.604, CY))
 # (1) AVIRIS spectrum + LiDAR -> hub ; symmetric about x=0.5, rounded corners
-ov.plot([0.455, 0.455, 0.545, 0.545], [0.700, 0.595, 0.595, 0.705], color=TEAL, lw=2.2,
+ov.plot([0.455, 0.455, 0.545, 0.545], [0.665, 0.595, 0.595, 0.665], color=TEAL, lw=2.2,
         zorder=3, solid_capstyle='round', solid_joinstyle='round')
 arr((0.5, 0.595), (0.5, HT)); badge(0.5, 0.595, 1)
 # (2) traits -> inverse
