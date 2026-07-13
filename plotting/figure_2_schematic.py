@@ -9,7 +9,7 @@ Figure 2 — CliMA Land workflow schematic (publication build).
 
 Geographic maps (lat/lon graticule, scale bar + north arrow on the top map of
 each column), cropped to the preserve polygon. Vector PDF (map layers rasterized
-at 600 dpi) + 600-dpi PNG.
+at 600 dpi) + 600-dpi PNG.  Units match the manuscript.
 """
 import numpy as np
 import xarray as xr
@@ -52,7 +52,8 @@ mp = lambda a: np.where(mask, a, np.nan)
 
 chl = mp(chl_ds['chl'].mean('time').values)
 lma = mp(xr.open_dataset(TRAIT / 'lma_aviris_dangermond_clima_fit_reg.nc')['lma'].mean('time').values * 1e4)
-lwc = mp(xr.open_dataset(TRAIT / 'lwc_aviris_dangermond_clima_fit_reg.nc')['lwc'].mean('time').values * 18.0)
+# LWC in g cm-2 shown x10-2 (matches manuscript Fig 5): mol m-2 * 18 / 1e4 * 100
+lwc = mp(xr.open_dataset(TRAIT / 'lwc_aviris_dangermond_clima_fit_reg.nc')['lwc'].mean('time').values * 0.0018 * 100)
 g, s = [], []
 for t in range(13):
     f = FLUX / f'shift_fluxes_day_{t:02d}_clima_fit_reg_jmax.nc'
@@ -62,7 +63,6 @@ for t in range(13):
         s.append(orient(d['sif740'].squeeze().values, nlat, nlon))
 gpp = mp(np.nanmean(np.dstack(g), 2)); sif = mp(np.nanmean(np.dstack(s), 2))
 
-# ERA5 campaign-window climograph (Feb–May 2022); fallback if archive absent
 ERA_MONTHS = ['Feb', 'Mar', 'Apr', 'May']
 try:
     _lon = -120.44 + 360
@@ -86,9 +86,9 @@ fig = plt.figure(figsize=(7.09, 4.72), dpi=200)
 FASP = 7.09 / 4.72
 ov = fig.add_axes([0, 0, 1, 1]); ov.set_xlim(0, 1); ov.set_ylim(0, 1); ov.axis('off')
 
-MW, MH = 0.146, 0.215
-LX, RX = 0.050, 0.778
-CB_W, CB_GAP = 0.012, 0.006
+MW, MH = 0.138, 0.215
+LX, RX = 0.044, 0.780
+CB_W, CB_GAP = 0.012, 0.004
 lon_fmt = FuncFormatter(lambda v, _: f"{abs(v):.2f}°W")
 lat_fmt = FuncFormatter(lambda v, _: f"{v:.2f}°N")
 
@@ -123,7 +123,7 @@ def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=F
     if show_lat:
         ax.yaxis.set_major_formatter(lat_fmt)
     m_, s_ = np.nanmean(data), np.nanstd(data)
-    ax.set_title(name, fontsize=FS_TITLE, fontweight='bold', pad=11)
+    ax.set_title(name, fontsize=FS_TITLE, fontweight='bold', pad=10)
     ax.text(0.5, 1.01, f'{m_:.1f} ± {s_:.1f}', transform=ax.transAxes, ha='center', va='bottom',
             fontsize=FS_SUB, color=SUB)
     cax = fig.add_axes([x + MW + CB_GAP, b + 0.10 * MH, CB_W, 0.80 * MH])
@@ -134,13 +134,13 @@ def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=F
         _scalebar(ax); _north(ax)
     return ax
 
-# Trait column (left) — extra vertical spacing between maps
-add_map(LX, 0.679, chl, 'YlGn',   0, 80,  'Chlorophyll Content', r'$\mu$g cm$^{-2}$', show_lat=True, deco=True)
-add_map(LX, 0.392, lma, 'YlOrBr', 0, 250, 'Leaf Mass per Area',  r'g m$^{-2}$',       show_lat=True)
-add_map(LX, 0.105, lwc, 'Blues',  0, 90,  'Leaf Water Content',  r'g m$^{-2}$',       show_lat=True, show_lon=True)
-# Flux column (right; centered on trait column)
-add_map(RX, 0.530, gpp, 'viridis', 0, 12,  'GPP',        r'$\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$', deco=True)
-add_map(RX, 0.255, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True)
+# Trait column (left) — column shifted down so 'Traits' tag clears the CHL title
+add_map(LX, 0.645, chl, 'YlGn',   0, 80,  'Chlorophyll Content', r'$\mu$g cm$^{-2}$',       show_lat=True, deco=True)
+add_map(LX, 0.353, lma, 'YlOrBr', 0, 250, 'Leaf Mass per Area',  r'g m$^{-2}$',             show_lat=True)
+add_map(LX, 0.061, lwc, 'Blues',  0, 1.5, 'Leaf Water Content',  r'g cm$^{-2}$ ($\times$10$^{-2}$)', show_lat=True, show_lon=True)
+# Flux column (right; centered on trait column, extra gap between GPP and SIF)
+add_map(RX, 0.5055, gpp, 'viridis', 0, 12,  'GPP',        r'$\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$', deco=True)
+add_map(RX, 0.2005, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True)
 
 # ---------------- reflectance spectrum ----------------
 rds = xr.open_dataset(REFL_FILE, decode_times=False)
@@ -151,7 +151,7 @@ ATM = [(1340, 1450), (1800, 1950)]
 gap = np.zeros_like(wl, bool)
 for lo, hi in ATM:
     gap |= (wl >= lo) & (wl <= hi)
-sp = fig.add_axes([0.300, 0.690, 0.180, 0.160])
+sp = fig.add_axes([0.298, 0.700, 0.175, 0.150])
 pcol = {2: '#2E7D32', 3: '#1565C0', 4: '#C62828'}; pname = {2: 'PFT 1', 3: 'PFT 2', 4: 'PFT 3'}
 for lo, hi in ATM:
     sp.axvspan(lo, hi, color='0.88', zorder=0)
@@ -171,33 +171,36 @@ sp.legend(fontsize=5.5, ncol=3, loc='upper center', bbox_to_anchor=(0.5, 1.0),
           frameon=True, facecolor='white', edgecolor='0.8', framealpha=0.85,
           columnspacing=1.0, handlelength=1.1, handletextpad=0.4, borderpad=0.3)
 
-# ---------------- LiDAR point cloud (bigger, colorbar close) ----------------
+# ---------------- LiDAR point cloud (with x/y/z axes) ----------------
 rng = np.random.default_rng(0)
 n = 1100; cx = rng.uniform(0, 1, n); cy = rng.uniform(0, 1, n)
 ht = (0.5 + 0.5 * np.sin(6 * cx) * np.cos(6 * cy)) * rng.uniform(0.35, 1.0, n) * 12.0
-lax = fig.add_axes([0.500, 0.672, 0.180, 0.190], projection='3d')
-scat = lax.scatter(cx, cy, ht, c=ht, cmap='viridis', vmin=0, vmax=12, s=3.2, depthshade=True, edgecolors='none')
-lax.view_init(elev=24, azim=-60); lax.set_axis_off()
+lax = fig.add_axes([0.505, 0.690, 0.170, 0.180], projection='3d')
+scat = lax.scatter(cx, cy, ht, c=ht, cmap='viridis', vmin=0, vmax=12, s=3.0, depthshade=True, edgecolors='none')
+lax.view_init(elev=24, azim=-60)
 lax.set_xlim(0, 1); lax.set_ylim(0, 1); lax.set_zlim(0, 12)
+lax.set_xticks([0, 1]); lax.set_yticks([0, 1]); lax.set_zticks([])
+lax.set_xticklabels([]); lax.set_yticklabels([])
+lax.set_xlabel('x', fontsize=6, labelpad=-12); lax.set_ylabel('y', fontsize=6, labelpad=-12)
+for axis in (lax.xaxis, lax.yaxis, lax.zaxis):
+    axis.pane.set_facecolor('white'); axis.pane.set_alpha(0.25); axis.pane.set_edgecolor('0.75')
+lax.grid(True)
 try:
-    lax.set_box_aspect((1, 1, 0.55), zoom=1.35)
+    lax.set_box_aspect((1, 1, 0.55), zoom=1.25)
 except TypeError:
     lax.set_box_aspect((1, 1, 0.55))
-lcax = fig.add_axes([0.675, 0.700, 0.011, 0.100])
+lcax = fig.add_axes([0.690, 0.712, 0.011, 0.095])
 lcb = fig.colorbar(scat, cax=lcax)
 lcb.set_label('Canopy height (m)', fontsize=FS_CB, labelpad=1)
-lcb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8)
-lcb.outline.set_linewidth(0.5)
+lcb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8); lcb.outline.set_linewidth(0.5)
 
 # ---------------- ERA5 climograph (bottom) ----------------
-ea = fig.add_axes([0.420, 0.020, 0.160, 0.115])
+ea = fig.add_axes([0.4225, 0.020, 0.155, 0.110])
 xpos = np.arange(len(ERA_MONTHS))
 ea.bar(xpos, ERA_P, width=0.62, color=PBLUE, alpha=0.65)
-ea.set_ylabel('P (mm)', color=PBLUE, fontsize=FS_CB, labelpad=1)
-ea.set_ylim(0, max(ERA_P) * 1.25)
+ea.set_ylabel('P (mm)', color=PBLUE, fontsize=FS_CB, labelpad=1); ea.set_ylim(0, max(ERA_P) * 1.25)
 ea.set_xticks(xpos); ea.set_xticklabels(ERA_MONTHS, fontsize=FS_TICK)
-ea.tick_params(labelsize=FS_TICK, width=0.4, length=1.8, colors=PBLUE)
-ea.tick_params(axis='x', colors='black')
+ea.tick_params(labelsize=FS_TICK, width=0.4, length=1.8, colors=PBLUE); ea.tick_params(axis='x', colors='black')
 ea2 = ea.twinx()
 ea2.plot(xpos, ERA_T, color=TRED, marker='o', ms=2.6, lw=1.4)
 ea2.set_ylabel('T (°C)', color=TRED, fontsize=FS_CB, labelpad=1)
@@ -212,11 +215,11 @@ def tag(x, y, t, fs=FS_TAG):
     ov.text(x, y, t, ha='center', va='center', fontsize=fs, fontweight='bold', color=LABEL_TX,
             zorder=6, bbox=dict(boxstyle='round,pad=0.4', fc=LABEL, ec='none'))
 
-def hub(x, y, t, rx=0.075):
+def hub(x, y, t, rx=0.068):
     ov.add_patch(Ellipse((x, y), 2 * rx, 2 * rx * FASP, fc=TEAL, ec='none', zorder=4))
     ov.text(x, y, t, ha='center', va='center', color='white', fontsize=FS_HUB, fontweight='bold', zorder=5)
 
-def pbox(x, y, t, w=0.115, h=0.115):
+def pbox(x, y, t, w=0.110, h=0.115):
     ov.add_patch(FancyBboxPatch((x - w / 2, y - h / 2), w, h, boxstyle='round,pad=0.006',
                                 fc=TEAL, ec='none', zorder=4))
     ov.text(x, y, t, ha='center', va='center', color='white', fontsize=FS_BOX, fontweight='bold', zorder=5)
@@ -227,38 +230,40 @@ def badge(x, y, n):
 
 def arr(p0, p1, dbl=False):
     ov.add_patch(FancyArrowPatch(p0, p1, arrowstyle='<|-|>' if dbl else '-|>',
-                                 mutation_scale=13, lw=2.2, color=TEAL, zorder=3))
+                                 mutation_scale=12, lw=2.2, color=TEAL, zorder=3))
 
 def ln(xs, ys):
     ov.plot(xs, ys, color=TEAL, lw=2.2, zorder=3, solid_capstyle='round')
 
-def brace(x, y0, y1, tick, cx, cy):
-    ln([x, x], [y0, y1]); ln([x, x + tick], [y0, y0]); ln([x, x + tick], [y1, y1]); ln([x, cx], [cy, cy])
+def brace(x, y0, y1, tick):
+    ln([x, x], [y0, y1]); ln([x, x + tick], [y0, y0]); ln([x, x + tick], [y1, y1])
 
-CY = 0.45; HT = CY + 0.075 * FASP; HB = CY - 0.075 * FASP
+CY = 0.45; HT = CY + 0.068 * FASP; HB = CY - 0.068 * FASP
 hub(0.5, CY, 'CliMA\nLand')
-pbox(0.320, CY, 'Inverse\nmodeling')
-pbox(0.680, CY, 'Forward\nmodeling')
-tag(0.390, 0.945, 'AVIRIS-NG')
+pbox(0.330, CY, 'Inverse\nmodeling')
+pbox(0.670, CY, 'Forward\nmodeling')
+tag(0.3855, 0.945, 'AVIRIS-NG')
 tag(0.590, 0.945, 'LiDAR clumping index', fs=8)
-tag(0.128, 0.945, 'Traits'); tag(0.853, 0.945, 'Fluxes')
-ov.text(0.492, 0.780, '+', ha='center', va='center', fontsize=16, fontweight='bold', color=TEAL, zorder=6)
+tag(0.116, 0.945, 'Traits'); tag(0.853, 0.945, 'Fluxes')
+ov.text(0.489, 0.780, '+', ha='center', va='center', fontsize=16, fontweight='bold', color=TEAL, zorder=6)
 
 # inverse <-> hub : two clearly separated arrows
-arr((0.3775, CY + 0.020), (0.4250, CY + 0.020))
-arr((0.4250, CY - 0.020), (0.3775, CY - 0.020))
-# hub -> forward : single visible arrow
-arr((0.5750, CY), (0.6225, CY))
-# (1) AVIRIS spectrum + LiDAR -> hub
-ln([0.390, 0.390], [0.648, 0.600]); ln([0.590, 0.590], [0.672, 0.600]); ln([0.390, 0.590], [0.600, 0.600])
+arr((0.385, CY + 0.019), (0.432, CY + 0.019))
+arr((0.432, CY - 0.019), (0.385, CY - 0.019))
+# hub -> forward
+arr((0.568, CY), (0.615, CY))
+# (1) AVIRIS spectrum + LiDAR -> hub (drop clears the centred x-axis label)
+ln([0.460, 0.460], [0.655, 0.600]); ln([0.592, 0.592], [0.690, 0.600]); ln([0.460, 0.592], [0.600, 0.600])
 arr((0.5, 0.600), (0.5, HT)); badge(0.5, 0.600, 1)
-# (2) traits -> inverse ; badge on the inverse box
-brace(0.255, 0.105, 0.894, -0.010, 0.2625, CY); badge(0.320, CY + 0.0575, 2)
+# (2) traits -> inverse : bracket + short arrow with a white gap before the box
+brace(0.238, 0.061, 0.860, -0.010)
+arr((0.238, CY), (0.262, CY)); badge(0.330, CY + 0.0575, 2)
 # (3) ERA5 -> hub
-arr((0.5, 0.205), (0.5, HB)); badge(0.5, 0.300, 3)
-# (4) forward -> fluxes ; badge on the forward box
-brace(0.755, 0.255, 0.745, 0.010, 0.7375, CY); badge(0.680, CY + 0.0575, 4)
-tag(0.5, 0.175, 'ERA5 reanalysis')
+arr((0.5, 0.200), (0.5, HB)); badge(0.5, 0.290, 3)
+# (4) forward -> fluxes
+brace(0.752, 0.2005, 0.7205, 0.010)
+arr((0.752, CY), (0.728, CY)); badge(0.670, CY + 0.0575, 4)
+tag(0.5, 0.170, 'ERA5 reanalysis')
 
 for ext in ('pdf', 'png'):
     fig.savefig(OUT / f'figure2_schematic.{ext}', dpi=600, facecolor='white', bbox_inches='tight', pad_inches=0.03)
