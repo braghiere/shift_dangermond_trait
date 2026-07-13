@@ -198,7 +198,7 @@ lcb.set_label('Canopy height (m)', fontsize=FS_CB, labelpad=1)
 lcb.ax.tick_params(labelsize=FS_TICK, width=0.4, length=1.8); lcb.outline.set_linewidth(0.5)
 
 # ---------------- ERA5 climograph (bottom) ----------------
-ea = fig.add_axes([0.4225, 0.020, 0.155, 0.110])
+ea = fig.add_axes([0.407, 0.016, 0.186, 0.132])
 xpos = np.arange(len(ERA_MONTHS))
 ea.bar(xpos, ERA_P, width=0.62, color=PBLUE, alpha=0.65)
 ea.set_ylabel('P (mm)', color=PBLUE, fontsize=FS_CB, labelpad=1); ea.set_ylim(0, max(ERA_P) * 1.25)
@@ -248,7 +248,7 @@ pbox(0.665, CY, 'Forward\nmodeling')
 tag(0.400, 0.945, 'AVIRIS-NG')
 tag(0.600, 0.945, 'LiDAR clumping index', fs=8)
 tag(0.108, 0.945, 'Traits'); tag(0.850, 0.945, 'Fluxes')
-ov.text(0.500, 0.780, '+', ha='center', va='center', fontsize=17, fontweight='bold', color=TEAL, zorder=6)
+ov.text(0.510, 0.780, '+', ha='center', va='center', fontsize=17, fontweight='bold', color=TEAL, zorder=6)
 
 # inverse <-> hub : two arrows, gapped from both the box and the hub
 arr((0.397, CY + 0.019), (0.430, CY + 0.019))
