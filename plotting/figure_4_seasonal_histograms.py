@@ -124,7 +124,7 @@ def make_figure(season):
         ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(4, -4),
                     textcoords='offset points', fontsize=19, fontweight='bold', va='top', ha='left')
         ax.legend(loc='upper right', frameon=True, fancybox=True, framealpha=0.9)
-    fig.suptitle(f'Figure {FIG_NUM[season]}. {subtitle}', fontsize=18, fontweight='bold', y=1.02)
+    fig.suptitle(subtitle, fontsize=18, fontweight='bold', y=1.02)  # season only; figure number is set by the caption
     fig.tight_layout()
     stem = FIG_DIR / f'trait_histograms_{tag}'
     fig.savefig(f'{stem}.png', dpi=300, bbox_inches='tight', facecolor='white')
