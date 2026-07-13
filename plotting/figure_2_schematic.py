@@ -84,7 +84,7 @@ MEANLAT = float(np.mean(vlat)); GEO_ASPECT = 1 / np.cos(np.deg2rad(MEANLAT))
 # ---------------- figure & layout ----------------
 fig = plt.figure(figsize=(7.09, 4.72), dpi=200)
 FASP = 7.09 / 4.72
-ov = fig.add_axes([0, 0, 1, 1]); ov.set_xlim(0, 1); ov.set_ylim(0, 1); ov.axis('off')
+ov = fig.add_axes([0, 0, 1, 1]); ov.set_xlim(0, 1); ov.set_ylim(0, 1); ov.axis('off'); ov.set_zorder(10)
 
 MW, MH = 0.138, 0.215
 LX, RX = 0.040, 0.782
@@ -110,6 +110,7 @@ def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=F
     cm = plt.get_cmap(cmap).copy(); cm.set_bad(alpha=0)
     im = ax.pcolormesh(LON, LAT, data, cmap=cm, vmin=vmin, vmax=vmax, shading='auto', rasterized=True)
     ax.set_xlim(*XLIM); ax.set_ylim(*YLIM); ax.set_aspect(GEO_ASPECT)
+    ax.set_axisbelow(True)
     ax.grid(True, color='0.7', lw=0.3, alpha=0.6)
     for sp in ax.spines.values():
         sp.set_visible(False)
@@ -262,10 +263,10 @@ arr((0.5, 0.595), (0.5, HT)); badge(0.5, 0.595, 1)
 # (2) traits -> inverse
 brace(0.248, BOT, TOP, -0.010); arr((0.248, CY), (0.270, CY)); badge(0.335, CY + 0.0575, 2)
 # (3) ERA5 -> hub
-arr((0.5, 0.200), (0.5, HB)); badge(0.5, 0.290, 3)
+arr((0.5, 0.210), (0.5, HB)); badge(0.5, 0.295, 3)
 # (4) forward -> fluxes
 brace(0.752, 0.153, 0.768, 0.010); arr((0.752, CY), (0.730, CY)); badge(0.665, CY + 0.0575, 4)
-tag(0.5, 0.170, 'ERA5 reanalysis')
+tag(0.5, 0.185, 'ERA5 reanalysis')
 
 for ext in ('pdf', 'png'):
     fig.savefig(OUT / f'figure2_schematic.{ext}', dpi=600, facecolor='white', bbox_inches='tight', pad_inches=0.03)
