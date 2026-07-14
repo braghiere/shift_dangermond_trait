@@ -1,13 +1,14 @@
 """
-TEST regeneration of Figure 5 (spatial trait maps) with print-legible lettering.
+Figure 5 (spatial trait maps) rebuilt for print legibility and unit consistency.
 Editor item 9: "scale numbers in Figure 5" too small at 18 cm print width.
 
 Fixes vs. original notebook (figure_5_spatial_trait_maps.ipynb):
-  - lat/lon tick ("scale") numbers: 12 -> 20 pt
-  - colorbar tick numbers:         14 -> 20 pt
-  - colorbar labels:               17 -> 19 pt
-  - density-inset axis label:       7 -> 13 pt ; inset ticks 5 -> 11 pt
-Output saved next to originals as *_TEST_legible.{png,pdf} so nothing is overwritten.
+  - lat/lon tick + colorbar "scale numbers": 12/14 -> 22 pt (~8-9 pt at 18 cm)
+  - colorbar labels 17 -> 20 pt; density-inset label/ticks 7/5 -> 14/12 pt
+  - panel letters (a)-(i) moved clear of the column titles (no overlap)
+  - LWC shown as g/cm2 (x10^-3), matching the Figure 4 histograms and Sec 3.2
+    (trait-mean ~4.1 x10^-3 g/cm2); previously x10^-2.
+Output: figures/figure5_remapcon_spatial_trait_maps_legible.{png,pdf}
 """
 import numpy as np
 import xarray as xr
@@ -58,19 +59,21 @@ trait_configs = {
     'lma': {'label': 'Leaf Mass per Area', 'unit': 'g/m²', 'cmap': 'YlOrBr',
             'cmap_diff': 'RdBu_r', 'vmin': 0, 'vmax': 200, 'vmin_diff': -80, 'vmax_diff': 80},
     'lwc': {'label': 'Leaf Water Content', 'unit': 'g/cm²', 'unit_raw': 'g/cm²',
-            'unit_multiplier': 100, 'cmap': 'Blues', 'cmap_diff': 'RdBu_r',
-            'vmin': 0, 'vmax': 1.5, 'vmin_diff': -0.6, 'vmax_diff': 0.6},
+            'unit_multiplier': 1000, 'cmap': 'Blues', 'cmap_diff': 'RdBu_r',
+            'vmin': 0, 'vmax': 15, 'vmin_diff': -6, 'vmax_diff': 6},
 }
 
 # ---- Enlarged font sizes (the fix) ----
-TICK = 20        # lat/lon "scale numbers"  (was 12)
-CBAR_TICK = 20   # colorbar scale numbers    (was 14)
-CBAR_LBL = 19    # colorbar labels           (was 17)
+# Design canvas is 18 in wide; at the 18 cm print width fonts scale ~x0.39,
+# so these sizes land at ~8-9 pt on the page (editor item 9: scale numbers legible).
+TICK = 22        # lat/lon "scale numbers"  (was 12)
+CBAR_TICK = 22   # colorbar scale numbers    (was 14)
+CBAR_LBL = 20    # colorbar labels           (was 17)
 STAT = 16
 PANEL = 24
 TITLE = 23
-INSET_LBL = 13   # was 7
-INSET_TICK = 11  # was 5
+INSET_LBL = 14   # was 7
+INSET_TICK = 12  # was 5
 
 def add_density_inset(ax, data, config):
     inset_ax = inset_axes(ax, width="30%", height="30%", loc='lower right',
@@ -102,12 +105,13 @@ for row_idx, (trait_name, trait_data, pft_data, diff_data) in enumerate(traits_d
     ]
     for col_idx, (data, cmap, vmin, vmax, label, is_diff) in enumerate(cols):
         ax = axes[row_idx, col_idx]
-        disp = data * 100 if trait_name == 'lwc' else data
+        disp = data * config.get('unit_multiplier', 1) if trait_name == 'lwc' else data
         im = ax.pcolormesh(LON, LAT, disp, cmap=cmap, vmin=vmin, vmax=vmax,
                            shading='auto', rasterized=True)
         ax.set_aspect('equal')
-        ax.text(-0.05, 1.05, f'({panel_labels[pidx + col_idx]})', transform=ax.transAxes,
-                fontsize=PANEL, fontweight='bold', va='bottom', ha='right')
+        ax.annotate(f'({panel_labels[pidx + col_idx]})', xy=(0, 1), xycoords='axes fraction',
+                    xytext=(-4, 4), textcoords='offset points',
+                    fontsize=PANEL, fontweight='bold', va='bottom', ha='right')
         stats_text = f'Mean: {np.nanmean(disp):.2f}\nSTD: {np.nanstd(disp):.2f}'
         ax.text(0.98, 0.98, stats_text, transform=ax.transAxes, fontsize=STAT,
                 va='top', ha='right',
@@ -119,13 +123,13 @@ for row_idx, (trait_name, trait_data, pft_data, diff_data) in enumerate(traits_d
         pref = 'Δ ' if is_diff else ''
         cbar.set_label(f"{pref}{label} ({config['unit']})", fontsize=CBAR_LBL, fontweight='bold')
         if trait_name == 'lwc':
-            cbar.ax.set_title('(×10⁻²)', fontsize=15, pad=10)
+            cbar.ax.set_title('(×10⁻³)', fontsize=18, pad=10)
         cbar.ax.tick_params(labelsize=CBAR_TICK)
         if is_diff:
             add_density_inset(ax, disp, config)
 
 for col_idx, col_title in enumerate(column_titles):
-    axes[0, col_idx].set_title(col_title, fontsize=TITLE, fontweight='bold', pad=15)
+    axes[0, col_idx].set_title(col_title, fontsize=TITLE, fontweight='bold', pad=30)
 
 plt.tight_layout(rect=[0.02, 0, 1, 0.99])
 out_png = FIG_DIR / 'figure5_remapcon_spatial_trait_maps_legible.png'
