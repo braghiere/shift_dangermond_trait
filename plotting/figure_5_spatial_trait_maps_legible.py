@@ -1,12 +1,16 @@
 """
-Figure 5 (spatial trait maps) rebuilt for print legibility and unit consistency.
-Editor item 9: "scale numbers in Figure 5" too small at 18 cm print width.
+Figure 5 (spatial trait maps) rebuilt for print legibility, a tighter layout, and
+unit consistency. Editor item 9: "scale numbers in Figure 5" too small at 18 cm.
 
-Fixes vs. original notebook (figure_5_spatial_trait_maps.ipynb):
+Layout / fixes vs. the original notebook (figure_5_spatial_trait_maps.ipynb):
   - lat/lon tick + colorbar "scale numbers": 12/14 -> 22 pt (~8-9 pt at 18 cm)
-  - colorbar labels 17 -> 20 pt; density-inset label/ticks 7/5 -> 14/12 pt
-  - panel letters (a)-(i) moved clear of the column titles (no overlap)
-  - LWC shown as g/cm2 (x10^-3), matching the Figure 4 histograms and Sec 3.2
+  - shared axes: latitude labels only on column 1, longitude only on the bottom row
+  - ONE shared colorbar for the Trait + PFT columns (identical scale); the
+    Difference column keeps its own colorbar
+  - constrained_layout removes the inter-row white space and enlarges the maps
+  - density insets on the Difference maps sit fully inside (their ticks preserved)
+  - panel letters (a)-(i) inside the top-left corner, lowercase, matching Fig 4
+  - LWC shown as g/cm2 (x10^-3), matching the Fig 4 histograms and Sec 3.2
     (trait-mean ~4.1 x10^-3 g/cm2); previously x10^-2.
 Output: figures/figure5_remapcon_spatial_trait_maps_legible.{png,pdf}
 """
@@ -68,7 +72,7 @@ trait_configs = {
 # so these sizes land at ~8-9 pt on the page (editor item 9: scale numbers legible).
 TICK = 22        # lat/lon "scale numbers"  (was 12)
 CBAR_TICK = 22   # colorbar scale numbers    (was 14)
-CBAR_LBL = 20    # colorbar labels           (was 17)
+CBAR_LBL = 18    # colorbar labels           (was 17)
 STAT = 16
 PANEL = 24
 TITLE = 23
@@ -76,66 +80,85 @@ INSET_LBL = 14   # was 7
 INSET_TICK = 12  # was 5
 
 def add_density_inset(ax, data, config):
-    inset_ax = inset_axes(ax, width="30%", height="30%", loc='lower right',
-                          bbox_to_anchor=(0.02, 0.05, 1, 1), bbox_transform=ax.transAxes,
-                          borderpad=1.0)
+    # fully inside the lower-right corner, opaque white background, own ticks kept
+    inset_ax = inset_axes(ax, width="40%", height="32%", loc='lower right', borderpad=1.1)
     v = data[np.isfinite(data) & (data != 0)]
-    if len(v) > 0:
-        inset_ax.hist(v, bins=50, color='gray', alpha=0.7, edgecolor='black',
-                      linewidth=0.5, density=True)
-        inset_ax.axvline(0, color='red', linestyle='--', linewidth=1.5, alpha=0.8)
-        inset_ax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.5, alpha=0.8)
-        unit_label = config.get('unit_raw', config['unit']) if 'unit_multiplier' in config else config['unit']
-        inset_ax.set_xlabel('Δ ' + unit_label, fontsize=INSET_LBL)
-        inset_ax.tick_params(labelsize=INSET_TICK)
-        inset_ax.grid(True, alpha=0.3, linewidth=0.5)
+    if len(v) == 0:
+        return
+    inset_ax.hist(v, bins=50, color='0.55', alpha=0.95, edgecolor='black',
+                  linewidth=0.4, density=True)
+    inset_ax.axvline(0, color='red', linestyle='--', linewidth=1.4)
+    inset_ax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.4)
+    unit_label = config.get('unit_raw', config['unit'])
+    if 'unit_multiplier' in config:
+        unit_label += ' (×10⁻³)'
+    inset_ax.set_xlabel('Δ ' + unit_label, fontsize=INSET_LBL, labelpad=1.5)
+    inset_ax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
+    inset_ax.locator_params(axis='x', nbins=3)
+    inset_ax.locator_params(axis='y', nbins=3)
+    inset_ax.patch.set_facecolor('white')
+    inset_ax.patch.set_alpha(0.9)
+    for s in inset_ax.spines.values():
+        s.set_linewidth(0.6)
 
-fig, axes = plt.subplots(3, 3, figsize=(18, 16), dpi=150)
-column_titles = ['Trait-based Approach', 'PFT-based Approach', 'Difference (Trait - PFT)']
 LON, LAT = np.meshgrid(lons, lats)
 panel_labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
+column_titles = ['Trait-based Approach', 'PFT-based Approach', 'Difference (Trait - PFT)']
+
+fig, axes = plt.subplots(3, 3, figsize=(18.0, 12.0), dpi=150, constrained_layout=True)
+fig.set_constrained_layout_pads(w_pad=0.10, h_pad=0.02, wspace=0.02, hspace=0.015)
 
 for row_idx, (trait_name, trait_data, pft_data, diff_data) in enumerate(traits_data):
     config = trait_configs[trait_name]
-    pidx = row_idx * 3
-    cols = [
-        (trait_data, config['cmap'], config['vmin'], config['vmax'], config['label'], False),
-        (pft_data, config['cmap'], config['vmin'], config['vmax'], config['label'], False),
-        (diff_data, config['cmap_diff'], config['vmin_diff'], config['vmax_diff'], config['label'], True),
+    mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
+    panels = [
+        (trait_data, config['cmap'], config['vmin'], config['vmax'], False),
+        (pft_data,   config['cmap'], config['vmin'], config['vmax'], False),
+        (diff_data,  config['cmap_diff'], config['vmin_diff'], config['vmax_diff'], True),
     ]
-    for col_idx, (data, cmap, vmin, vmax, label, is_diff) in enumerate(cols):
+    ims = []
+    for col_idx, (data, cmap, vmin, vmax, is_diff) in enumerate(panels):
         ax = axes[row_idx, col_idx]
-        disp = data * config.get('unit_multiplier', 1) if trait_name == 'lwc' else data
+        disp = data * mult
         im = ax.pcolormesh(LON, LAT, disp, cmap=cmap, vmin=vmin, vmax=vmax,
                            shading='auto', rasterized=True)
+        ims.append(im)
         ax.set_aspect('equal')
-        ax.annotate(f'({panel_labels[pidx + col_idx]})', xy=(0, 1), xycoords='axes fraction',
-                    xytext=(-4, 4), textcoords='offset points',
-                    fontsize=PANEL, fontweight='bold', va='bottom', ha='right')
-        stats_text = f'Mean: {np.nanmean(disp):.2f}\nSTD: {np.nanstd(disp):.2f}'
-        ax.text(0.98, 0.98, stats_text, transform=ax.transAxes, fontsize=STAT,
-                va='top', ha='right',
+        # panel letter inside the top-left corner (lowercase, consistent with Fig 4)
+        ax.text(0.035, 0.965, f'({panel_labels[row_idx * 3 + col_idx]})', transform=ax.transAxes,
+                fontsize=PANEL, fontweight='bold', va='top', ha='left',
+                bbox=dict(boxstyle='round,pad=0.15', facecolor='white', alpha=0.85, edgecolor='none'))
+        ax.text(0.965, 0.965, f'Mean: {np.nanmean(disp):.2f}\nSTD: {np.nanstd(disp):.2f}',
+                transform=ax.transAxes, fontsize=STAT, va='top', ha='right',
                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.9, edgecolor='black'))
         ax.tick_params(labelsize=TICK)
-        ax.locator_params(axis='x', nbins=4)
+        ax.locator_params(axis='x', nbins=3)
         ax.locator_params(axis='y', nbins=4)
-        cbar = plt.colorbar(im, ax=ax, orientation='vertical', pad=0.02, fraction=0.046)
-        pref = 'Δ ' if is_diff else ''
-        cbar.set_label(f"{pref}{label} ({config['unit']})", fontsize=CBAR_LBL, fontweight='bold')
-        if trait_name == 'lwc':
-            cbar.ax.set_title('(×10⁻³)', fontsize=18, pad=10)
-        cbar.ax.tick_params(labelsize=CBAR_TICK)
+        if col_idx != 0:                       # latitude labels only on the first column
+            ax.tick_params(labelleft=False)
+        if row_idx != 2:                       # longitude labels only on the bottom row
+            ax.tick_params(labelbottom=False)
+        if row_idx == 0:
+            ax.set_title(column_titles[col_idx], fontsize=TITLE, fontweight='bold', pad=8)
         if is_diff:
             add_density_inset(ax, disp, config)
 
-for col_idx, col_title in enumerate(column_titles):
-    axes[0, col_idx].set_title(col_title, fontsize=TITLE, fontweight='bold', pad=30)
+    # one shared colorbar for the Trait + PFT columns (identical colour scale)
+    cb = fig.colorbar(ims[1], ax=[axes[row_idx, 0], axes[row_idx, 1]], fraction=0.046, pad=0.02)
+    cb.set_label(f"{config['label']} ({config['unit']})", fontsize=CBAR_LBL, fontweight='bold')
+    cb.ax.tick_params(labelsize=CBAR_TICK)
+    # separate colorbar for the Difference column
+    cbd = fig.colorbar(ims[2], ax=axes[row_idx, 2], fraction=0.046, pad=0.02)
+    cbd.set_label(f"Δ {config['label']} ({config['unit']})", fontsize=CBAR_LBL, fontweight='bold')
+    cbd.ax.tick_params(labelsize=CBAR_TICK)
+    if trait_name == 'lwc':
+        cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
+        cbd.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
 
-plt.tight_layout(rect=[0.02, 0, 1, 0.99])
 out_png = FIG_DIR / 'figure5_remapcon_spatial_trait_maps_legible.png'
 out_pdf = FIG_DIR / 'figure5_remapcon_spatial_trait_maps_legible.pdf'
-fig.savefig(out_png, dpi=300, facecolor='white', bbox_inches='tight')
-fig.savefig(out_pdf, facecolor='white', bbox_inches='tight')
+fig.savefig(out_png, dpi=300, facecolor='white')
+fig.savefig(out_pdf, facecolor='white')
 plt.close(fig)
 print(f"Saved: {out_png}")
 print(f"Saved: {out_pdf}")
