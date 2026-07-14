@@ -25,7 +25,7 @@ Scripts for generating plots and visual representations of data.
 
 - `plot_trait_pdf.py`: Generates PDFs of plant traits plots.
 - `figure_2_schematic.py`: Builds the complete Figure 2 CliMA Land workflow schematic — geographic trait/flux maps (graticule, scale bar, north arrow), the PFT reflectance spectrum, a LiDAR point-cloud icon, and the vector schematic — exported as `figures/figure2_schematic.pdf` (vector) and `.png` (600 dpi).
-- `figure_4_seasonal_histograms.py`: Builds the seasonal trait histograms, split by season into three legible figures per the editor's request — Figure 4 (Early), Figure 5 (Mid), Figure 6 (Late), each a CHL/LMA/LWC row by PFT (`trait_histograms_{early,mid,late}.{png,pdf}`). This renumbers the spatial maps to Figure 7 and GPP/SIF to Figure 8.
+- `figure_4_seasonal_histograms.py`: Builds the seasonal trait histograms, split by season into three legible sub-figures per the editor's request — Figure 4a (Early), 4b (Mid), 4c (Late), each a CHL/LMA/LWC row by PFT (`figure4{a,b,c}.{png,pdf}`). Kept as 4a/b/c for now so the downstream figure numbers are undisturbed; full renumbering to follow once Figures 5 and 6 are revised.
 - `figure_5_spatial_trait_maps_legible.py`: Regenerates Figure 5 (spatial trait maps) with enlarged axis/colorbar scale numbers.
 
 Figure outputs are written to `figures/`.

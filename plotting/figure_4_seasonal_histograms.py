@@ -1,14 +1,15 @@
 """
-Seasonal trait histograms, split by season into three separately-numbered,
-print-legible figures (Ecosphere editor item 8):
+Seasonal trait histograms, split by season into three separately-named,
+print-legible figures (Ecosphere editor item 8). Kept as sub-figures of
+Figure 4 (4a/4b/4c) for now, so the downstream figure numbers are undisturbed;
+full renumbering will follow once Figures 5 and 6 are also revised.
 
-    Figure 4  ->  Early season (late Feb - Mar)   trait_histograms_early.{png,pdf}
-    Figure 5  ->  Mid season   (late Mar - Apr)   trait_histograms_mid.{png,pdf}
-    Figure 6  ->  Late season  (May)              trait_histograms_late.{png,pdf}
+    Figure 4a  ->  Early season (late Feb - Mar)   figure4a.{png,pdf}
+    Figure 4b  ->  Mid season   (late Mar - Apr)   figure4b.{png,pdf}
+    Figure 4c  ->  Late season  (May)              figure4c.{png,pdf}
 
 Each figure is a single wide row of three panels (a) CHL, (b) LMA, (c) LWC, so
-at the 18 cm page width the lettering is large and readable. Downstream figures
-renumber: spatial trait maps -> Figure 7, GPP/SIF -> Figure 8.
+at the 18 cm page width the lettering is large and readable.
 """
 import numpy as np
 import xarray as xr
@@ -43,7 +44,9 @@ SEASONS = {
     'Mid':   (['04', '05', '06', '07', '08'],  'Mid season (late Mar–Apr)',   'mid'),
     'Late':  (['09', '10', '11', '12'],        'Late season (May)',           'late'),
 }
-FIG_NUM = {'Early': 4, 'Mid': 5, 'Late': 6}
+# split kept as sub-figures 4a/4b/4c for now (downstream numbering undisturbed)
+FIG_PANEL = {'Early': 'a', 'Mid': 'b', 'Late': 'c'}
+FIG_LABEL = {'Early': '4a', 'Mid': '4b', 'Late': '4c'}
 TRAIT_VARS = ['chl', 'lma', 'lwc']
 TRAIT_NAME = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
 TRAIT_UNIT = {'chl': r'CHL ($\mu$g cm$^{-2}$)', 'lma': r'LMA (g m$^{-2}$)',
@@ -130,11 +133,11 @@ def make_figure(season):
                   handlelength=1.3, borderpad=0.4, labelspacing=0.3)
     fig.suptitle(subtitle, fontsize=20, fontweight='bold', y=0.99)
     fig.subplots_adjust(left=0.07, right=0.985, top=0.82, bottom=0.17, wspace=0.26)
-    stem = FIG_DIR / f'trait_histograms_{tag}'
+    stem = FIG_DIR / f'figure4{FIG_PANEL[season]}'
     fig.savefig(f'{stem}.png', dpi=300, bbox_inches='tight', facecolor='white')
     fig.savefig(f'{stem}.pdf', bbox_inches='tight', facecolor='white')
     plt.close(fig)
-    print(f'saved Figure {FIG_NUM[season]} ({season}) -> {stem}.png / .pdf')
+    print(f'saved Figure {FIG_LABEL[season]} ({season}) -> {stem}.png / .pdf')
 
 
 for s in SEASONS:
