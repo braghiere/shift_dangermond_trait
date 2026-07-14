@@ -120,13 +120,15 @@ def make_figure(season):
         ax.set_xlabel(TRAIT_UNIT[v], fontweight='bold')
         ax.set_ylabel('Density', fontweight='bold')
         if v == 'lma':
-            ax.set_yscale('log'); ax.set_ylim(top=ax.get_ylim()[1] * 3.0)
-        else:
-            ax.set_ylim(top=ax.get_ylim()[1] * 1.4)          # headroom for the legend
+            ax.set_yscale('log')
+        if v == 'chl':
+            # only CHL needs headroom: its rising right tail runs under the upper-right legend.
+            # LMA/LWC peak at the left, so the upper-right legend sits over empty space already.
+            ax.set_ylim(top=ax.get_ylim()[1] * 1.4)
         ax.tick_params(length=3, width=0.8)
         ax.grid(True, alpha=0.3, ls='--', lw=0.5)
-        # panel letter on top of / aligned with the y-axis
-        ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(0, 5),
+        # panel letter over the y-axis tick numbers
+        ax.annotate(f'({PANEL[ci]})', xy=(0, 1), xycoords='axes fraction', xytext=(-22, 5),
                     textcoords='offset points', fontsize=18, fontweight='bold', va='bottom', ha='center')
         # legend INSIDE, upper-right (clear of the left-side mean lines and the peaks)
         ax.legend(loc='upper right', fontsize=11, frameon=True, framealpha=0.9, fancybox=True,
