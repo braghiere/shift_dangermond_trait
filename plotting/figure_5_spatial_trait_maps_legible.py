@@ -1,18 +1,22 @@
 """
-Figure 5 (spatial trait maps) rebuilt for print legibility, a tighter layout, and
-unit consistency. Editor item 9: "scale numbers in Figure 5" too small at 18 cm.
+Figure 5 (spatial trait maps) SPLIT into two print-legible figures to avoid the
+crowding of a single 3x3 grid (editor item 9: scale numbers legible at 18 cm).
 
-Layout / fixes vs. the original notebook (figure_5_spatial_trait_maps.ipynb):
-  - lat/lon tick + colorbar "scale numbers": 12/14 -> 22 pt (~8-9 pt at 18 cm)
-  - shared axes: latitude labels only on column 1, longitude only on the bottom row
-  - ONE shared colorbar for the Trait + PFT columns (identical scale); the
-    Difference column keeps its own colorbar
-  - constrained_layout removes the inter-row white space and enlarges the maps
-  - density insets on the Difference maps sit fully inside (their ticks preserved)
-  - panel letters (a)-(i) inside the top-left corner, lowercase, matching Fig 4
+  figure5a_trait_vs_pft : Trait vs PFT, 2 columns x 3 traits (CHL/LMA/LWC rows),
+                          one shared colorbar per trait row.
+  figure5b_difference   : the three Trait-minus-PFT maps as a 1x3 ROW, each with
+                          its own colorbar and a Δ-distribution inset.
+
+Design choices:
+  - lat/lon "scale numbers" 22 pt; only 2 ticks each ([34.45, 34.55] / [-120.50,
+    -120.40]) to declutter; latitude shown on the left-most map of each block.
+  - colorbar titles split over two lines so the rotated labels never overlap.
+  - panel letters (a).. OUTSIDE the maps (top-left), lowercase, matching Fig 4.
+  - constrained_layout tightens columns/rows and enlarges the maps.
+  - density insets on the Difference maps sit fully inside the lower-right corner.
   - LWC shown as g/cm2 (x10^-3), matching the Fig 4 histograms and Sec 3.2
     (trait-mean ~4.1 x10^-3 g/cm2); previously x10^-2.
-Output: figures/figure5_remapcon_spatial_trait_maps_legible.{png,pdf}
+Output: figures/figure5a_trait_vs_pft.{png,pdf}, figures/figure5b_difference.{png,pdf}
 """
 import numpy as np
 import xarray as xr
@@ -80,85 +84,118 @@ INSET_LBL = 14   # was 7
 INSET_TICK = 12  # was 5
 
 def add_density_inset(ax, data, config):
-    # fully inside the lower-right corner, opaque white background, own ticks kept
-    inset_ax = inset_axes(ax, width="40%", height="32%", loc='lower right', borderpad=1.1)
+    # Δ-distribution box tucked in the lower-right corner. Opaque white so it reads
+    # cleanly over the map; x-units are omitted (given on the colorbar) so no text
+    # runs off the map edge. Dashed lines mark zero (red) and the mean (blue).
+    inset_ax = inset_axes(ax, width="33%", height="28%", loc='lower right', borderpad=0.9)
     v = data[np.isfinite(data) & (data != 0)]
     if len(v) == 0:
         return
-    inset_ax.hist(v, bins=50, color='0.55', alpha=0.95, edgecolor='black',
-                  linewidth=0.4, density=True)
+    inset_ax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     inset_ax.axvline(0, color='red', linestyle='--', linewidth=1.4)
     inset_ax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.4)
-    unit_label = config.get('unit_raw', config['unit'])
-    if 'unit_multiplier' in config:
-        unit_label += ' (×10⁻³)'
-    inset_ax.set_xlabel('Δ ' + unit_label, fontsize=INSET_LBL, labelpad=1.5)
-    inset_ax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
+    inset_ax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.0)
     inset_ax.locator_params(axis='x', nbins=3)
     inset_ax.locator_params(axis='y', nbins=3)
-    inset_ax.patch.set_facecolor('white')
-    inset_ax.patch.set_alpha(0.9)
+    inset_ax.set_facecolor('white')
+    inset_ax.patch.set_alpha(1.0)
+    inset_ax.set_zorder(5)
     for s in inset_ax.spines.values():
-        s.set_linewidth(0.6)
+        s.set_linewidth(0.7)
 
 LON, LAT = np.meshgrid(lons, lats)
-panel_labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']
-column_titles = ['Trait-based Approach', 'PFT-based Approach', 'Difference (Trait - PFT)']
 
-fig, axes = plt.subplots(3, 3, figsize=(18.0, 12.0), dpi=150, constrained_layout=True)
-fig.set_constrained_layout_pads(w_pad=0.10, h_pad=0.02, wspace=0.02, hspace=0.015)
+# two-line colorbar labels so the (rotated) titles do not overrun / overlap
+CLABEL = {
+    'chl': 'Chlorophyll\nContent (µg/cm²)',
+    'lma': 'Leaf Mass per\nArea (g/m²)',
+    'lwc': 'Leaf Water\nContent (g/cm²)',
+}
+LAT_TICKS = [34.45, 34.55]      # only 2 ticks each, to declutter
+LON_TICKS = [-120.50, -120.40]
 
-for row_idx, (trait_name, trait_data, pft_data, diff_data) in enumerate(traits_data):
+
+def style_map(ax, show_lat, show_lon):
+    ax.set_aspect('equal')
+    ax.set_xticks(LON_TICKS)
+    ax.set_yticks(LAT_TICKS)
+    ax.tick_params(labelsize=TICK)
+    ax.tick_params(labelleft=show_lat, labelbottom=show_lon)
+
+
+def panel_letter(ax, letter):
+    # outside the map, above the top-left corner
+    ax.annotate(f'({letter})', xy=(0, 1), xycoords='axes fraction',
+                xytext=(-2, 3), textcoords='offset points',
+                fontsize=PANEL, fontweight='bold', va='bottom', ha='right')
+
+
+def stats_box(ax, disp):
+    ax.text(0.965, 0.96, f'Mean: {np.nanmean(disp):.2f}\nSTD: {np.nanstd(disp):.2f}',
+            transform=ax.transAxes, fontsize=STAT, va='top', ha='right',
+            bbox=dict(boxstyle='round', facecolor='white', alpha=0.9, edgecolor='black'))
+
+
+# ===================== Figure 5a: Trait vs PFT (2 columns) =====================
+figA, axesA = plt.subplots(3, 2, figsize=(11.0, 14.5), dpi=150, constrained_layout=True)
+figA.set_constrained_layout_pads(w_pad=0.08, h_pad=0.02, wspace=0.01, hspace=0.02)
+col_titles = ['Trait-based Approach', 'PFT-based Approach']
+lettersA = [['a', 'b'], ['c', 'd'], ['e', 'f']]
+
+for r, (trait_name, trait_data, pft_data, _diff) in enumerate(traits_data):
     config = trait_configs[trait_name]
     mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
-    panels = [
-        (trait_data, config['cmap'], config['vmin'], config['vmax'], False),
-        (pft_data,   config['cmap'], config['vmin'], config['vmax'], False),
-        (diff_data,  config['cmap_diff'], config['vmin_diff'], config['vmax_diff'], True),
-    ]
-    ims = []
-    for col_idx, (data, cmap, vmin, vmax, is_diff) in enumerate(panels):
-        ax = axes[row_idx, col_idx]
+    im = None
+    for c, data in enumerate([trait_data, pft_data]):
+        ax = axesA[r, c]
         disp = data * mult
-        im = ax.pcolormesh(LON, LAT, disp, cmap=cmap, vmin=vmin, vmax=vmax,
-                           shading='auto', rasterized=True)
-        ims.append(im)
-        ax.set_aspect('equal')
-        # panel letter inside the top-left corner (lowercase, consistent with Fig 4)
-        ax.text(0.035, 0.965, f'({panel_labels[row_idx * 3 + col_idx]})', transform=ax.transAxes,
-                fontsize=PANEL, fontweight='bold', va='top', ha='left',
-                bbox=dict(boxstyle='round,pad=0.15', facecolor='white', alpha=0.85, edgecolor='none'))
-        ax.text(0.965, 0.965, f'Mean: {np.nanmean(disp):.2f}\nSTD: {np.nanstd(disp):.2f}',
-                transform=ax.transAxes, fontsize=STAT, va='top', ha='right',
-                bbox=dict(boxstyle='round', facecolor='white', alpha=0.9, edgecolor='black'))
-        ax.tick_params(labelsize=TICK)
-        ax.locator_params(axis='x', nbins=3)
-        ax.locator_params(axis='y', nbins=4)
-        if col_idx != 0:                       # latitude labels only on the first column
-            ax.tick_params(labelleft=False)
-        if row_idx != 2:                       # longitude labels only on the bottom row
-            ax.tick_params(labelbottom=False)
-        if row_idx == 0:
-            ax.set_title(column_titles[col_idx], fontsize=TITLE, fontweight='bold', pad=8)
-        if is_diff:
-            add_density_inset(ax, disp, config)
-
-    # one shared colorbar for the Trait + PFT columns (identical colour scale)
-    cb = fig.colorbar(ims[1], ax=[axes[row_idx, 0], axes[row_idx, 1]], fraction=0.046, pad=0.02)
-    cb.set_label(f"{config['label']} ({config['unit']})", fontsize=CBAR_LBL, fontweight='bold')
+        im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap'], vmin=config['vmin'],
+                           vmax=config['vmax'], shading='auto', rasterized=True)
+        style_map(ax, show_lat=(c == 0), show_lon=(r == 2))
+        panel_letter(ax, lettersA[r][c])
+        stats_box(ax, disp)
+        if r == 0:
+            ax.set_title(col_titles[c], fontsize=TITLE, fontweight='bold', pad=22)
+    cb = figA.colorbar(im, ax=[axesA[r, 0], axesA[r, 1]], fraction=0.05, pad=0.02)
+    cb.set_label(CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
-    # separate colorbar for the Difference column
-    cbd = fig.colorbar(ims[2], ax=axes[row_idx, 2], fraction=0.046, pad=0.02)
-    cbd.set_label(f"Δ {config['label']} ({config['unit']})", fontsize=CBAR_LBL, fontweight='bold')
-    cbd.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-        cbd.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
 
-out_png = FIG_DIR / 'figure5_remapcon_spatial_trait_maps_legible.png'
-out_pdf = FIG_DIR / 'figure5_remapcon_spatial_trait_maps_legible.pdf'
-fig.savefig(out_png, dpi=300, facecolor='white')
-fig.savefig(out_pdf, facecolor='white')
-plt.close(fig)
-print(f"Saved: {out_png}")
-print(f"Saved: {out_pdf}")
+out_a = FIG_DIR / 'figure5a_trait_vs_pft'
+figA.savefig(f'{out_a}.png', dpi=300, facecolor='white')
+figA.savefig(f'{out_a}.pdf', facecolor='white')
+plt.close(figA)
+
+# ================= Figure 5b: Difference (Trait - PFT) as a 1x3 row =================
+figB, axesB = plt.subplots(1, 3, figsize=(18.0, 6.0), dpi=150, constrained_layout=True)
+figB.set_constrained_layout_pads(w_pad=0.06, h_pad=0.04, wspace=0.04, hspace=0.02)
+lettersB = ['a', 'b', 'c']
+map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
+
+for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
+    config = trait_configs[trait_name]
+    mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
+    ax = axesB[c]
+    disp = diff_data * mult
+    im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap_diff'], vmin=config['vmin_diff'],
+                       vmax=config['vmax_diff'], shading='auto', rasterized=True)
+    style_map(ax, show_lat=(c == 0), show_lon=True)
+    panel_letter(ax, lettersB[c])
+    stats_box(ax, disp)
+    ax.set_title(map_titles[trait_name], fontsize=TITLE, fontweight='bold', pad=22)
+    cb = figB.colorbar(im, ax=ax, fraction=0.05, pad=0.02)
+    cb.set_label('Δ ' + CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
+    cb.ax.tick_params(labelsize=CBAR_TICK)
+    if trait_name == 'lwc':
+        cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
+    add_density_inset(ax, disp, config)
+
+figB.suptitle('Difference (Trait − PFT)', fontsize=TITLE + 3, fontweight='bold')
+out_b = FIG_DIR / 'figure5b_difference'
+figB.savefig(f'{out_b}.png', dpi=300, facecolor='white')
+figB.savefig(f'{out_b}.pdf', facecolor='white')
+plt.close(figB)
+
+print(f'Saved: {out_a}.png / .pdf')
+print(f'Saved: {out_b}.png / .pdf')
