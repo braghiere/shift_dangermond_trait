@@ -17,7 +17,9 @@ Design choices:
   - colorbar titles split over two lines so the rotated labels never overlap.
   - panel letters (a).. OUTSIDE the maps (top-left), lowercase, matching Fig 4.
   - constrained_layout tightens columns/rows and enlarges the maps.
-  - density insets on the Difference maps sit fully inside the lower-right corner.
+  - 5b: the map extent is padded right/below the preserve so each frame's lower-right
+    is blank white; the Δ-distribution inset (with axis names + units) lives there,
+    clear of the data.
   - LWC shown as g/cm2 (x10^-3), matching the Fig 4 histograms and Sec 3.2
     (trait-mean ~4.1 x10^-3 g/cm2); previously x10^-2.
 Output: figures/figure5a_trait_vs_pft.{png,pdf}, figures/figure5b_difference.{png,pdf}
@@ -112,10 +114,10 @@ LAT_TICKS = [34.45, 34.55]      # only 2 ticks each, to declutter
 LON_TICKS = [-120.50, -120.40]
 
 
-def style_map(ax, show_lat, show_lon):
+def style_map(ax, show_lat, show_lon, xlim=None, ylim=None):
     # maps fill their (aspect-matched) axes box, so a same-box colorbar == map height
-    ax.set_xlim(lons.min(), lons.max())
-    ax.set_ylim(lats.min(), lats.max())
+    ax.set_xlim(xlim if xlim else (lons.min(), lons.max()))
+    ax.set_ylim(ylim if ylim else (lats.min(), lats.max()))
     ax.set_xticks(LON_TICKS)
     ax.set_yticks(LAT_TICKS)
     ax.tick_params(labelsize=TICK)
@@ -175,14 +177,22 @@ figA.savefig(f'{out_a}.pdf', facecolor='white')
 plt.close(figA)
 
 # ===== Figure 5b: Difference (Trait − PFT), 1x3 row with Δ-distribution insets =====
-# Shorter design height so at the 18 cm print width the inset lettering scales up
-# and stays legible. Insets sit in the empty lower-right corner (over blank area,
-# clear of the lat/lon tick labels) and keep their axis names + units.
-Wb, Hb = 18.0, 5.4
+# The map extent is padded to the right and below the preserve so the lower-right
+# of each frame is blank white; the Δ-distribution inset lives there with its full
+# axis names + units, clear of the data (user request). Aspect stays consistent so
+# the colorbars remain exactly the map height.
+lon_r = lons.max() - lons.min()
+lat_r = lats.max() - lats.min()
+PAD_R, PAD_B = 0.55, 0.45                          # extend lon right / lat down
+XLIM = (lons.min(), lons.max() + PAD_R * lon_r)
+YLIM = (lats.min() - PAD_B * lat_r, lats.max())
+ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
+
+Wb, Hb = 18.0, 5.6
 Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.062, 0.012, 0.006
 MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
-MHb = MWb * Wb / (ASP * Hb)                        # map height: box aspect == ASP
-TOPb = 0.19                                         # top margin (suptitle + map title)
+MHb = MWb * Wb / (ASP_B * Hb)                      # map height: box aspect == ASP_B
+TOPb = 0.17                                         # top margin (suptitle + map title)
 map_y = 1 - TOPb - MHb
 lettersB = ['a', 'b', 'c']
 map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
@@ -197,7 +207,7 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     ax = figB.add_axes([x, map_y, MWb, MHb])
     im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap_diff'], vmin=config['vmin_diff'],
                        vmax=config['vmax_diff'], shading='auto', rasterized=True)
-    style_map(ax, show_lat=(c == 0), show_lon=True)
+    style_map(ax, show_lat=(c == 0), show_lon=True, xlim=XLIM, ylim=YLIM)
     panel_letter(ax, lettersB[c])
     stats_box(ax, disp)
     ax.set_title(map_titles[trait_name], fontsize=TITLE, fontweight='bold', pad=8)
@@ -207,9 +217,9 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-    # Δ-distribution histogram INSET in the empty lower-right corner (labels kept)
-    iw, ih = 0.46 * MWb, 0.42 * MHb
-    hax = figB.add_axes([x + MWb - iw - 0.015 * MWb, map_y + 0.165 * MHb, iw, ih])
+    # Δ-distribution histogram INSET in the blank lower-right of the padded frame
+    iw, ih = 0.40 * MWb, 0.44 * MHb
+    hax = figB.add_axes([x + MWb - iw - 0.015 * MWb, map_y + 0.085 * MHb, iw, ih])
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
@@ -219,10 +229,6 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     hax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
     hax.locator_params(axis='x', nbins=3)
     hax.locator_params(axis='y', nbins=3)
-    hax.set_facecolor('white')
-    hax.patch.set_alpha(0.92)
-    for s in hax.spines.values():
-        s.set_linewidth(0.7)
 
 figB.text(0.5, 0.975, 'Difference (Trait − PFT)', ha='center', va='top',
           fontsize=TITLE + 3, fontweight='bold')
