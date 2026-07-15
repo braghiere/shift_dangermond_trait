@@ -63,9 +63,9 @@ LATT, LONT = [34.45, 34.55], [-120.50, -120.40]
 TICK = CBAR_TICK = 22; CBAR_LBL = 18; STAT = 16; PANEL = 24; TITLE = 23
 INSET_LBL, INSET_TICK = 13, 11
 Wb = 18.0
-Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.035, 0.006
+Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.050, 0.035
 MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
-TOP_IN, BOT_IN = 0.80, 0.55
+TOP_IN, BOT_IN = 1.05, 0.55
 
 
 def render(padr, padb, ix, iy, iw, ih):

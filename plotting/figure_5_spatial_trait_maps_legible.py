@@ -186,11 +186,11 @@ YLIM = (lats.min() - PAD_B * lat_r, lats.max())
 ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
 
 Wb = 18.0
-Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.035, 0.006  # GUNIT = space between panels
+Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.050, 0.035  # GUNIT gap between panels; RB right margin so last cbar label isn't clipped
 MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
 # derive the figure height from the map size + fixed margins so the lon tick
 # labels (bottom) and titles/suptitle (top) always have room and never clip
-TOP_IN, BOT_IN = 0.80, 0.55                        # inch margins: titles / lon labels
+TOP_IN, BOT_IN = 1.05, 0.55                        # inch margins: title gap / lon labels
 map_h_in = MWb * Wb / ASP_B                        # box aspect == ASP_B
 Hb = TOP_IN + map_h_in + BOT_IN
 MHb = map_h_in / Hb
