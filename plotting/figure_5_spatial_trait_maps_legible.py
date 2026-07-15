@@ -180,7 +180,7 @@ plt.close(figA)
 # the colorbars remain exactly the map height.
 lon_r = lons.max() - lons.min()
 lat_r = lats.max() - lats.min()
-PAD_R, PAD_B = 0.15, 0.15                          # from the interactive layout tool
+PAD_R, PAD_B = 0.14, 0.22                          # from the live layout tool
 XLIM = (lons.min(), lons.max() + PAD_R * lon_r)
 YLIM = (lats.min() - PAD_B * lat_r, lats.max())
 ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
@@ -198,6 +198,7 @@ map_y = BOT_IN / Hb
 lettersB = ['a', 'b', 'c']
 map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
 INSET_LBL, INSET_TICK = 13, 11                     # match the layout tool exactly
+INSET_POS = (0.645, 0.122, 0.313, 0.284)           # ix, iy, iw, ih — chosen in the live tool
 
 figB = plt.figure(figsize=(Wb, Hb), dpi=150)
 for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
@@ -223,15 +224,12 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     # would push the labels outside the axes. So we treat your box as the full inset
     # footprint and place the plot axes inside it with the tool's own margins
     # ([0.26, 0.30, 0.70, 0.64]) — the rendered figure now matches the tool exactly.
-    bx, by = x + 0.462 * MWb, map_y - 0.034 * MHb          # your box (tool coords)
-    bw, bh = 0.534 * MWb, 0.471 * MHb
-    # clean white backdrop so the map doesn't bleed through and clutter the inset;
-    # its bottom is clamped to the map edge (map_y) so it never touches the lon labels.
-    card = figB.add_axes([bx, map_y, bw, (by + bh) - map_y]); card.set_zorder(4)
-    card.set_xticks([]); card.set_yticks([]); card.set_facecolor('white')
-    for s in card.spines.values():
-        s.set_visible(False)
-    hax = figB.add_axes([bx + 0.26 * bw, by + 0.30 * bh, 0.70 * bw, 0.64 * bh]); hax.set_zorder(5)
+    # Δ-distribution histogram INSET — a TRANSPARENT axes placed at exactly the
+    # coordinates chosen in the live layout tool (INSET_POS). The box IS the plot
+    # axes; matplotlib draws the tick numbers + Δ label just outside it — precisely
+    # what the live tool previews (WYSIWYG).
+    ix, iy, iw, ih = INSET_POS
+    hax = figB.add_axes([x + ix * MWb, map_y + iy * MHb, iw * MWb, ih * MHb])
     hax.patch.set_alpha(0)
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
