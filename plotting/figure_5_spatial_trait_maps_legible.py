@@ -185,12 +185,16 @@ XLIM = (lons.min(), lons.max() + PAD_R * lon_r)
 YLIM = (lats.min() - PAD_B * lat_r, lats.max())
 ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
 
-Wb, Hb = 18.0, 4.5
+Wb = 18.0
 Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.035, 0.006  # GUNIT = space between panels
 MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
-MHb = MWb * Wb / (ASP_B * Hb)                      # map height: box aspect == ASP_B
-TOPb = 0.17                                         # top margin (suptitle + map title)
-map_y = 1 - TOPb - MHb
+# derive the figure height from the map size + fixed margins so the lon tick
+# labels (bottom) and titles/suptitle (top) always have room and never clip
+TOP_IN, BOT_IN = 0.80, 0.55                        # inch margins: titles / lon labels
+map_h_in = MWb * Wb / ASP_B                        # box aspect == ASP_B
+Hb = TOP_IN + map_h_in + BOT_IN
+MHb = map_h_in / Hb
+map_y = BOT_IN / Hb
 lettersB = ['a', 'b', 'c']
 map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
 INSET_LBL, INSET_TICK = 15, 13
