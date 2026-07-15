@@ -180,7 +180,7 @@ plt.close(figA)
 # the colorbars remain exactly the map height.
 lon_r = lons.max() - lons.min()
 lat_r = lats.max() - lats.min()
-PAD_R, PAD_B = 0.30, 0.26                          # modest white pad (the map is the star)
+PAD_R, PAD_B = 0.15, 0.15                          # from the interactive layout tool
 XLIM = (lons.min(), lons.max() + PAD_R * lon_r)
 YLIM = (lats.min() - PAD_B * lat_r, lats.max())
 ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
@@ -197,7 +197,7 @@ MHb = map_h_in / Hb
 map_y = BOT_IN / Hb
 lettersB = ['a', 'b', 'c']
 map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
-INSET_LBL, INSET_TICK = 15, 13
+INSET_LBL, INSET_TICK = 13, 11                     # match the layout tool exactly
 
 figB = plt.figure(figsize=(Wb, Hb), dpi=150)
 for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
@@ -218,10 +218,21 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-    # Δ-distribution histogram INSET tucked into the blank lower-right corner
-    # (secondary to the map); fixed symmetric x-range per trait, no units on label.
-    iw, ih = 0.34 * MWb, 0.30 * MHb
-    hax = figB.add_axes([x + MWb - iw - 0.11 * MWb, map_y + 0.12 * MHb, iw, ih])
+    # Δ-distribution histogram INSET. The layout tool renders the WHOLE histogram —
+    # bars, tick numbers AND the Δ label — inside the box you drag, whereas matplotlib
+    # would push the labels outside the axes. So we treat your box as the full inset
+    # footprint and place the plot axes inside it with the tool's own margins
+    # ([0.26, 0.30, 0.70, 0.64]) — the rendered figure now matches the tool exactly.
+    bx, by = x + 0.462 * MWb, map_y - 0.034 * MHb          # your box (tool coords)
+    bw, bh = 0.534 * MWb, 0.471 * MHb
+    # clean white backdrop so the map doesn't bleed through and clutter the inset;
+    # its bottom is clamped to the map edge (map_y) so it never touches the lon labels.
+    card = figB.add_axes([bx, map_y, bw, (by + bh) - map_y]); card.set_zorder(4)
+    card.set_xticks([]); card.set_yticks([]); card.set_facecolor('white')
+    for s in card.spines.values():
+        s.set_visible(False)
+    hax = figB.add_axes([bx + 0.26 * bw, by + 0.30 * bh, 0.70 * bw, 0.64 * bh]); hax.set_zorder(5)
+    hax.patch.set_alpha(0)
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
@@ -229,7 +240,7 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     hax.set_xlim(-DRANGE[trait_name], DRANGE[trait_name])
     hax.set_xticks([-DRANGE[trait_name], 0, DRANGE[trait_name]])
     hax.set_xlabel(DLABEL[trait_name], fontsize=INSET_LBL, fontweight='bold', labelpad=1.5)
-    hax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
+    hax.tick_params(labelsize=INSET_TICK)
     hax.locator_params(axis='y', nbins=2)
 
 figB.text(0.5, 0.975, 'Difference (Trait − PFT)', ha='center', va='top',
