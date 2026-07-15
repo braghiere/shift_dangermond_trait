@@ -104,12 +104,9 @@ CLABEL = {
     'lma': 'Leaf Mass per\nArea (g/m²)',
     'lwc': 'Leaf Water\nContent (g/cm²)',
 }
-# Δ-distribution histogram x-axis labels (with units) for the Figure 5b lower row
-DLABEL = {
-    'chl': 'Δ CHL (µg/cm²)',
-    'lma': 'Δ LMA (g/m²)',
-    'lwc': 'Δ LWC (g/cm², ×10⁻³)',
-}
+# Δ-distribution histogram x-axis labels (units omitted — they are on the colorbar)
+DLABEL = {'chl': 'Δ CHL', 'lma': 'Δ LMA', 'lwc': 'Δ LWC'}
+DRANGE = {'chl': 50, 'lma': 200, 'lwc': 20}        # symmetric x-limits for the Δ insets
 LAT_TICKS = [34.45, 34.55]      # only 2 ticks each, to declutter
 LON_TICKS = [-120.50, -120.40]
 
@@ -217,18 +214,18 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-    # Δ-distribution histogram INSET in the blank lower-right (secondary to the map).
-    # Raised so its x-axis label stays inside the white area, clear of the map's
-    # longitude tick labels below the frame.
-    iw, ih = 0.36 * MWb, 0.32 * MHb
-    hax = figB.add_axes([x + MWb - iw - 0.02 * MWb, map_y + 0.21 * MHb, iw, ih])
+    # Δ-distribution histogram INSET tucked into the blank lower-right corner
+    # (secondary to the map); fixed symmetric x-range per trait, no units on label.
+    iw, ih = 0.36 * MWb, 0.30 * MHb
+    hax = figB.add_axes([x + MWb - iw - 0.02 * MWb, map_y + 0.16 * MHb, iw, ih])
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
     hax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.5)
+    hax.set_xlim(-DRANGE[trait_name], DRANGE[trait_name])
+    hax.set_xticks([-DRANGE[trait_name], 0, DRANGE[trait_name]])
     hax.set_xlabel(DLABEL[trait_name], fontsize=INSET_LBL, fontweight='bold', labelpad=1.5)
     hax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
-    hax.locator_params(axis='x', nbins=3)
     hax.locator_params(axis='y', nbins=2)
 
 figB.text(0.5, 0.975, 'Difference (Trait − PFT)', ha='center', va='top',
