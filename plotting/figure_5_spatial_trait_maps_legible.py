@@ -180,12 +180,12 @@ plt.close(figA)
 # the colorbars remain exactly the map height.
 lon_r = lons.max() - lons.min()
 lat_r = lats.max() - lats.min()
-PAD_R, PAD_B = 0.35, 0.28                          # modest white pad (the map is the star)
+PAD_R, PAD_B = 0.30, 0.26                          # modest white pad (the map is the star)
 XLIM = (lons.min(), lons.max() + PAD_R * lon_r)
 YLIM = (lats.min() - PAD_B * lat_r, lats.max())
 ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
 
-Wb, Hb = 18.0, 4.9
+Wb, Hb = 18.0, 4.5
 Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.035, 0.006  # GUNIT = space between panels
 MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
 MHb = MWb * Wb / (ASP_B * Hb)                      # map height: box aspect == ASP_B
@@ -216,8 +216,8 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
     # Δ-distribution histogram INSET tucked into the blank lower-right corner
     # (secondary to the map); fixed symmetric x-range per trait, no units on label.
-    iw, ih = 0.36 * MWb, 0.30 * MHb
-    hax = figB.add_axes([x + MWb - iw - 0.02 * MWb, map_y + 0.16 * MHb, iw, ih])
+    iw, ih = 0.34 * MWb, 0.30 * MHb
+    hax = figB.add_axes([x + MWb - iw - 0.11 * MWb, map_y + 0.12 * MHb, iw, ih])
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
