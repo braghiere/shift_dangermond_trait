@@ -8,6 +8,10 @@ crowding of a single 3x3 grid (editor item 9: scale numbers legible at 18 cm).
                           its own colorbar and a Δ-distribution inset.
 
 Design choices:
+  - DATA: conservative-remapping (remapcon) retrievals — the same dataset as Fig 4
+    and Sec 3.2 — reproducing the manuscript Fig 5 values exactly. The earlier
+    bilinear *_reg.nc files preserved the domain means but gave ~10% higher
+    per-pixel STD and did NOT match the paper.
   - lat/lon "scale numbers" 22 pt; only 2 ticks each ([34.45, 34.55] / [-120.50,
     -120.40]) to declutter; latitude shown on the left-most map of each block.
   - colorbar titles split over two lines so the rotated labels never overlap.
@@ -25,31 +29,41 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pathlib import Path
 
 BASE = Path('/home/renatob/data/FluoData1/aviris_dangermond')
-base_path = BASE / 'traits' / 'datasets' / 'clima_fit_prescribed_lai_ci'
+# Use the SAME conservative-remapping (remapcon) dataset as Figure 4 and Results
+# Sec 3.2 — this is what the manuscript Figure 5 was built from. (The old
+# `clima_fit_prescribed_lai_ci` *_reg.nc files are bilinear-resampled: same domain
+# means but ~10% higher per-pixel STD, which did NOT match the paper.)
+RC = BASE / 'traits' / 'datasets' / 'clima_fit_prescribed_lai_ci_remapcon'
 pft_path = BASE / 'California_Vegetation_WHRTYPE_Dangermond' / 'output_latlon.nc'
 FIG_DIR = BASE / 'shift_dangermond_trait' / 'figures'
 
-# ---- Load trait-based (spatially explicit) maps ----
-chl_trait_ds = xr.open_dataset(base_path / 'chl_aviris_dangermond_clima_fit_reg.nc')
-lma_trait_ds = xr.open_dataset(base_path / 'lma_aviris_dangermond_clima_fit_reg.nc')
-lwc_trait_ds = xr.open_dataset(base_path / 'lwc_aviris_dangermond_clima_fit_reg.nc')
+CONV = {'chl': 1.0, 'lma': 1e4, 'lwc': 0.0018}   # -> µg/cm², g/m², g/cm²
+TIMES = range(13)
 
-chl_trait = chl_trait_ds['chl'].mean(dim='time').values          # ug/cm2
-lma_trait = lma_trait_ds['lma'].mean(dim='time').values * 1e4    # g/cm2 -> g/m2
-lwc_trait_raw = lwc_trait_ds['lwc'].mean(dim='time').values
-lwc_trait = lwc_trait_raw * 0.0018 if np.nanmax(lwc_trait_raw) > 1 else lwc_trait_raw
+# ---- Trait maps: time-average of the per-date remapcon retrievals ----
+trait = {}
+for _t in ['chl', 'lma', 'lwc']:
+    stack = np.stack([
+        xr.open_dataset(RC / f'shift_traits_time_{i:02d}_remapcon.nc')[_t]
+          .transpose('lat', 'lon').values
+        for i in TIMES])
+    trait[_t] = np.nanmean(stack, axis=0) * CONV[_t]
 
-lats = chl_trait_ds['lat'].values
-lons = chl_trait_ds['lon'].values
+# ---- PFT maps: pre-computed per-PFT means (remapcon) ----
+pftm = {}
+for _t in ['chl', 'lma', 'lwc']:
+    da = xr.open_dataset(RC / f'mean_masked_{_t}_aviris_dangermond_clima_fit_remapcon.nc')[_t].squeeze()
+    pftm[_t] = da.transpose('lat', 'lon').values * CONV[_t]
 
-# ---- Load PFT-based (averaged) maps ----
-chl_pft = xr.open_dataset(base_path / 'mean_masked_chl_aviris_dangermond_clima_fit.nc')['chl'].values.squeeze()
-lma_pft = xr.open_dataset(base_path / 'mean_masked_lma_aviris_dangermond_clima_fit.nc')['lma'].values.squeeze()
-lwc_pft = xr.open_dataset(base_path / 'mean_masked_lwc_aviris_dangermond_clima_fit.nc')['lwc'].values.squeeze() * 0.0018
+_grid = xr.open_dataset(RC / 'shift_traits_time_00_remapcon.nc')
+lats = _grid['lat'].values
+lons = _grid['lon'].values
 
-pft_map = xr.open_dataset(pft_path)['Band1'].values
+pft_map = xr.open_dataset(pft_path)['Band1'].transpose('lat', 'lon').values
 pft_mask = np.isin(pft_map, [2, 3, 4])
 
+chl_trait, lma_trait, lwc_trait = trait['chl'], trait['lma'], trait['lwc']
+chl_pft, lma_pft, lwc_pft = pftm['chl'], pftm['lma'], pftm['lwc']
 chl_diff = chl_trait - chl_pft
 lma_diff = lma_trait - lma_pft
 lwc_diff = lwc_trait - lwc_pft
