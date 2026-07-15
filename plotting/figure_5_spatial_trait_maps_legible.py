@@ -217,9 +217,11 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-    # Δ-distribution histogram INSET in the blank lower-right (secondary to the map)
-    iw, ih = 0.36 * MWb, 0.34 * MHb
-    hax = figB.add_axes([x + MWb - iw - 0.02 * MWb, map_y + 0.075 * MHb, iw, ih])
+    # Δ-distribution histogram INSET in the blank lower-right (secondary to the map).
+    # Raised so its x-axis label stays inside the white area, clear of the map's
+    # longitude tick labels below the frame.
+    iw, ih = 0.36 * MWb, 0.32 * MHb
+    hax = figB.add_axes([x + MWb - iw - 0.02 * MWb, map_y + 0.21 * MHb, iw, ih])
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
