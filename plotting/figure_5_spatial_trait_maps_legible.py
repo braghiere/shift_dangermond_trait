@@ -183,20 +183,20 @@ plt.close(figA)
 # the colorbars remain exactly the map height.
 lon_r = lons.max() - lons.min()
 lat_r = lats.max() - lats.min()
-PAD_R, PAD_B = 0.55, 0.45                          # extend lon right / lat down
+PAD_R, PAD_B = 0.35, 0.28                          # modest white pad (the map is the star)
 XLIM = (lons.min(), lons.max() + PAD_R * lon_r)
 YLIM = (lats.min() - PAD_B * lat_r, lats.max())
 ASP_B = (XLIM[1] - XLIM[0]) / (YLIM[1] - YLIM[0])  # padded-frame aspect
 
-Wb, Hb = 18.0, 5.6
-Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.062, 0.012, 0.006
+Wb, Hb = 18.0, 4.9
+Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.052, 0.035, 0.006  # GUNIT = space between panels
 MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
 MHb = MWb * Wb / (ASP_B * Hb)                      # map height: box aspect == ASP_B
 TOPb = 0.17                                         # top margin (suptitle + map title)
 map_y = 1 - TOPb - MHb
 lettersB = ['a', 'b', 'c']
 map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
-INSET_LBL, INSET_TICK = 16, 14
+INSET_LBL, INSET_TICK = 15, 13
 
 figB = plt.figure(figsize=(Wb, Hb), dpi=150)
 for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
@@ -217,18 +217,17 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-    # Δ-distribution histogram INSET in the blank lower-right of the padded frame
-    iw, ih = 0.40 * MWb, 0.44 * MHb
-    hax = figB.add_axes([x + MWb - iw - 0.015 * MWb, map_y + 0.085 * MHb, iw, ih])
+    # Δ-distribution histogram INSET in the blank lower-right (secondary to the map)
+    iw, ih = 0.36 * MWb, 0.34 * MHb
+    hax = figB.add_axes([x + MWb - iw - 0.02 * MWb, map_y + 0.075 * MHb, iw, ih])
     v = disp[np.isfinite(disp) & (disp != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
     hax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.5)
     hax.set_xlabel(DLABEL[trait_name], fontsize=INSET_LBL, fontweight='bold', labelpad=1.5)
-    hax.set_ylabel('Density', fontsize=INSET_LBL, fontweight='bold', labelpad=1.5)
     hax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
     hax.locator_params(axis='x', nbins=3)
-    hax.locator_params(axis='y', nbins=3)
+    hax.locator_params(axis='y', nbins=2)
 
 figB.text(0.5, 0.975, 'Difference (Trait − PFT)', ha='center', va='top',
           fontsize=TITLE + 3, fontweight='bold')
