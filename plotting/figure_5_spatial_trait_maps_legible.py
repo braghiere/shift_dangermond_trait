@@ -25,7 +25,6 @@ Output: figures/figure5a_trait_vs_pft.{png,pdf}, figures/figure5b_difference.{pn
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pathlib import Path
 
 BASE = Path('/home/renatob/data/FluoData1/aviris_dangermond')
@@ -85,39 +84,17 @@ trait_configs = {
             'vmin': 0, 'vmax': 15, 'vmin_diff': -6, 'vmax_diff': 6},
 }
 
-# ---- Enlarged font sizes (the fix) ----
-# Design canvas is 18 in wide; at the 18 cm print width fonts scale ~x0.39,
-# so these sizes land at ~8-9 pt on the page (editor item 9: scale numbers legible).
-TICK = 22        # lat/lon "scale numbers"  (was 12)
-CBAR_TICK = 22   # colorbar scale numbers    (was 14)
-CBAR_LBL = 18    # colorbar labels           (was 17)
-STAT = 16
-PANEL = 24
-TITLE = 23
-INSET_LBL = 14   # was 7
-INSET_TICK = 12  # was 5
-
-def add_density_inset(ax, data, config):
-    # Δ-distribution box tucked in the lower-right corner. Opaque white so it reads
-    # cleanly over the map; x-units are omitted (given on the colorbar) so no text
-    # runs off the map edge. Dashed lines mark zero (red) and the mean (blue).
-    inset_ax = inset_axes(ax, width="33%", height="28%", loc='lower right', borderpad=0.9)
-    v = data[np.isfinite(data) & (data != 0)]
-    if len(v) == 0:
-        return
-    inset_ax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
-    inset_ax.axvline(0, color='red', linestyle='--', linewidth=1.4)
-    inset_ax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.4)
-    inset_ax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.0)
-    inset_ax.locator_params(axis='x', nbins=3)
-    inset_ax.locator_params(axis='y', nbins=3)
-    inset_ax.set_facecolor('white')
-    inset_ax.patch.set_alpha(1.0)
-    inset_ax.set_zorder(5)
-    for s in inset_ax.spines.values():
-        s.set_linewidth(0.7)
+# ---- Font sizes (editor item 9: legible scale numbers at the 18 cm print width) ----
+TICK = 22        # lat/lon scale numbers
+CBAR_TICK = 22   # colorbar scale numbers
+CBAR_LBL = 18    # colorbar / histogram axis labels
+STAT = 16        # in-map Mean/STD box
+PANEL = 24       # (a).. panel letters
+TITLE = 23       # column / map titles
+HIST_TICK = 16   # Fig 5b histogram tick numbers
 
 LON, LAT = np.meshgrid(lons, lats)
+ASP = float((lons.max() - lons.min()) / (lats.max() - lats.min()))   # map width:height, equal-degree
 
 # two-line colorbar labels so the (rotated) titles do not overrun / overlap
 CLABEL = {
@@ -125,12 +102,20 @@ CLABEL = {
     'lma': 'Leaf Mass per\nArea (g/m²)',
     'lwc': 'Leaf Water\nContent (g/cm²)',
 }
+# Δ-distribution histogram x-axis labels (with units) for the Figure 5b lower row
+DLABEL = {
+    'chl': 'Δ CHL (µg/cm²)',
+    'lma': 'Δ LMA (g/m²)',
+    'lwc': 'Δ LWC (g/cm², ×10⁻³)',
+}
 LAT_TICKS = [34.45, 34.55]      # only 2 ticks each, to declutter
 LON_TICKS = [-120.50, -120.40]
 
 
 def style_map(ax, show_lat, show_lon):
-    ax.set_aspect('equal')
+    # maps fill their (aspect-matched) axes box, so a same-box colorbar == map height
+    ax.set_xlim(lons.min(), lons.max())
+    ax.set_ylim(lats.min(), lats.max())
     ax.set_xticks(LON_TICKS)
     ax.set_yticks(LAT_TICKS)
     ax.tick_params(labelsize=TICK)
@@ -138,9 +123,8 @@ def style_map(ax, show_lat, show_lon):
 
 
 def panel_letter(ax, letter):
-    # outside the map, above the top-left corner
     ax.annotate(f'({letter})', xy=(0, 1), xycoords='axes fraction',
-                xytext=(-2, 3), textcoords='offset points',
+                xytext=(-2, 4), textcoords='offset points',
                 fontsize=PANEL, fontweight='bold', va='bottom', ha='right')
 
 
@@ -150,27 +134,36 @@ def stats_box(ax, disp):
             bbox=dict(boxstyle='round', facecolor='white', alpha=0.9, edgecolor='black'))
 
 
-# ===================== Figure 5a: Trait vs PFT (2 columns) =====================
-figA, axesA = plt.subplots(3, 2, figsize=(11.0, 14.5), dpi=150, constrained_layout=True)
-figA.set_constrained_layout_pads(w_pad=0.08, h_pad=0.02, wspace=0.01, hspace=0.02)
+# ============ Figure 5a: Trait vs PFT (manual layout: colorbar == map height) ============
+Wf, Hf = 11.0, 13.3
+L, G_COL, G_CB, CW, R_LAB = 0.100, 0.020, 0.014, 0.022, 0.140
+MW = (1 - L - G_COL - G_CB - CW - R_LAB) / 2      # map width (fig fraction)
+MH = MW * Wf / (ASP * Hf)                          # map height: box aspect == ASP
+G_ROW, B = 0.038, 0.050                            # row gap just fits the outside letters (#3)
+TOP = 1 - 3 * MH - 2 * G_ROW - B                   # region above row-0 maps (titles)
+COL_X = [L, L + MW + G_COL]
+CB_X = L + 2 * MW + G_COL + G_CB
 col_titles = ['Trait-based Approach', 'PFT-based Approach']
 lettersA = [['a', 'b'], ['c', 'd'], ['e', 'f']]
 
+figA = plt.figure(figsize=(Wf, Hf), dpi=150)
 for r, (trait_name, trait_data, pft_data, _diff) in enumerate(traits_data):
     config = trait_configs[trait_name]
     mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
+    y0 = 1 - TOP - r * (MH + G_ROW) - MH
     im = None
     for c, data in enumerate([trait_data, pft_data]):
-        ax = axesA[r, c]
+        ax = figA.add_axes([COL_X[c], y0, MW, MH])
         disp = data * mult
         im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap'], vmin=config['vmin'],
                            vmax=config['vmax'], shading='auto', rasterized=True)
         style_map(ax, show_lat=(c == 0), show_lon=(r == 2))
         panel_letter(ax, lettersA[r][c])
         stats_box(ax, disp)
-        if r == 0:
-            ax.set_title(col_titles[c], fontsize=TITLE, fontweight='bold', pad=22)
-    cb = figA.colorbar(im, ax=[axesA[r, 0], axesA[r, 1]], fraction=0.05, pad=0.02)
+        if r == 0:                              # extra title->map space (#2)
+            ax.set_title(col_titles[c], fontsize=TITLE, fontweight='bold', pad=34)
+    cax = figA.add_axes([CB_X, y0, CW, MH])     # colorbar exactly the map height (#1)
+    cb = figA.colorbar(im, cax=cax)
     cb.set_label(CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
@@ -181,31 +174,58 @@ figA.savefig(f'{out_a}.png', dpi=300, facecolor='white')
 figA.savefig(f'{out_a}.pdf', facecolor='white')
 plt.close(figA)
 
-# ================= Figure 5b: Difference (Trait - PFT) as a 1x3 row =================
-figB, axesB = plt.subplots(1, 3, figsize=(18.0, 6.0), dpi=150, constrained_layout=True)
-figB.set_constrained_layout_pads(w_pad=0.06, h_pad=0.04, wspace=0.04, hspace=0.02)
+# ===== Figure 5b: Difference (Trait − PFT), 1x3 row with Δ-distribution insets =====
+# Shorter design height so at the 18 cm print width the inset lettering scales up
+# and stays legible. Insets sit in the empty lower-right corner (over blank area,
+# clear of the lat/lon tick labels) and keep their axis names + units.
+Wb, Hb = 18.0, 5.4
+Lb, GCB, CWb, CLAB, GUNIT, RB = 0.055, 0.006, 0.013, 0.062, 0.012, 0.006
+MWb = (1 - Lb - 3 * (GCB + CWb + CLAB) - 2 * GUNIT - RB) / 3
+MHb = MWb * Wb / (ASP * Hb)                        # map height: box aspect == ASP
+TOPb = 0.19                                         # top margin (suptitle + map title)
+map_y = 1 - TOPb - MHb
 lettersB = ['a', 'b', 'c']
 map_titles = {'chl': 'Chlorophyll Content', 'lma': 'Leaf Mass per Area', 'lwc': 'Leaf Water Content'}
+INSET_LBL, INSET_TICK = 16, 14
 
+figB = plt.figure(figsize=(Wb, Hb), dpi=150)
 for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     config = trait_configs[trait_name]
     mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
-    ax = axesB[c]
+    x = Lb + c * (MWb + GCB + CWb + CLAB + GUNIT)
     disp = diff_data * mult
+    ax = figB.add_axes([x, map_y, MWb, MHb])
     im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap_diff'], vmin=config['vmin_diff'],
                        vmax=config['vmax_diff'], shading='auto', rasterized=True)
     style_map(ax, show_lat=(c == 0), show_lon=True)
     panel_letter(ax, lettersB[c])
     stats_box(ax, disp)
-    ax.set_title(map_titles[trait_name], fontsize=TITLE, fontweight='bold', pad=22)
-    cb = figB.colorbar(im, ax=ax, fraction=0.05, pad=0.02)
+    ax.set_title(map_titles[trait_name], fontsize=TITLE, fontweight='bold', pad=8)
+    cax = figB.add_axes([x + MWb + GCB, map_y, CWb, MHb])   # colorbar == map height (#1)
+    cb = figB.colorbar(im, cax=cax)
     cb.set_label('Δ ' + CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
         cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
-    add_density_inset(ax, disp, config)
+    # Δ-distribution histogram INSET in the empty lower-right corner (labels kept)
+    iw, ih = 0.46 * MWb, 0.42 * MHb
+    hax = figB.add_axes([x + MWb - iw - 0.015 * MWb, map_y + 0.165 * MHb, iw, ih])
+    v = disp[np.isfinite(disp) & (disp != 0)]
+    hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
+    hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
+    hax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.5)
+    hax.set_xlabel(DLABEL[trait_name], fontsize=INSET_LBL, fontweight='bold', labelpad=1.5)
+    hax.set_ylabel('Density', fontsize=INSET_LBL, fontweight='bold', labelpad=1.5)
+    hax.tick_params(labelsize=INSET_TICK, length=2.5, pad=1.5)
+    hax.locator_params(axis='x', nbins=3)
+    hax.locator_params(axis='y', nbins=3)
+    hax.set_facecolor('white')
+    hax.patch.set_alpha(0.92)
+    for s in hax.spines.values():
+        s.set_linewidth(0.7)
 
-figB.suptitle('Difference (Trait − PFT)', fontsize=TITLE + 3, fontweight='bold')
+figB.text(0.5, 0.975, 'Difference (Trait − PFT)', ha='center', va='top',
+          fontsize=TITLE + 3, fontweight='bold')
 out_b = FIG_DIR / 'figure5b_difference'
 figB.savefig(f'{out_b}.png', dpi=300, facecolor='white')
 figB.savefig(f'{out_b}.pdf', facecolor='white')
