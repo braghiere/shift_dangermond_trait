@@ -98,7 +98,8 @@ def render(padr, padb, ix, iy, iw, ih):
         cb.set_label(cfg[t]['clab'], fontsize=CBAR_LBL, fontweight='bold')
         cb.ax.tick_params(labelsize=CBAR_TICK)
         if t == 'lwc':
-            cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
+            cb.ax.text(0.0, 1.02, '(×10⁻³)', transform=cb.ax.transAxes,
+                       fontsize=15, ha='left', va='bottom')
         # transparent Δ-distribution inset at the requested coordinates
         hax = fig.add_axes([x + ix * MWb, map_y + iy * MHb, iw * MWb, ih * MHb])
         hax.patch.set_alpha(0)

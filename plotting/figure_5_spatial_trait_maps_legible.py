@@ -217,8 +217,9 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb = figB.colorbar(im, cax=cax)
     cb.set_label('Δ ' + CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
-    if trait_name == 'lwc':
-        cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
+    if trait_name == 'lwc':                        # ×10⁻³ at the colorbar top, left-anchored
+        cb.ax.text(0.0, 1.02, '(×10⁻³)', transform=cb.ax.transAxes,   # so it clears the title
+                   fontsize=15, ha='left', va='bottom')
     # Δ-distribution histogram INSET. The layout tool renders the WHOLE histogram —
     # bars, tick numbers AND the Δ label — inside the box you drag, whereas matplotlib
     # would push the labels outside the axes. So we treat your box as the full inset
