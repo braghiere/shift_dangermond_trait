@@ -29,6 +29,15 @@ import xarray as xr
 import matplotlib.pyplot as plt
 from pathlib import Path
 
+# Publication style: match the other figures (Nimbus Sans) and embed TrueType
+# fonts in vector output (pdf.fonttype 42) so the PDF/EPS carry no Type-3 fonts.
+plt.rcParams.update({
+    'font.family': 'Nimbus Sans',
+    'mathtext.fontset': 'custom', 'mathtext.rm': 'Nimbus Sans',
+    'mathtext.it': 'Nimbus Sans:italic', 'mathtext.bf': 'Nimbus Sans:bold',
+    'pdf.fonttype': 42, 'ps.fonttype': 42,
+})
+
 BASE = Path('/home/renatob/data/FluoData1/aviris_dangermond')
 # Use the SAME conservative-remapping (remapcon) dataset as Figure 4 and Results
 # Sec 3.2 — this is what the manuscript Figure 5 was built from. (The old
@@ -166,11 +175,11 @@ for r, (trait_name, trait_data, pft_data, _diff) in enumerate(traits_data):
     cb.set_label(CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':
-        cb.ax.set_title('(×10⁻³)', fontsize=16, pad=6)
+        cb.ax.set_title(r'($\times$10$^{-3}$)', fontsize=16, pad=6)
 
 out_a = FIG_DIR / 'figure5a_trait_vs_pft'
-figA.savefig(f'{out_a}.png', dpi=300, facecolor='white')
-figA.savefig(f'{out_a}.pdf', facecolor='white')
+figA.savefig(f'{out_a}.png', dpi=600, facecolor='white')
+figA.savefig(f'{out_a}.pdf', dpi=600, facecolor='white')
 plt.close(figA)
 
 # ===== Figure 5b: Difference (Trait − PFT), 1x3 row with Δ-distribution insets =====
@@ -218,7 +227,7 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     cb.set_label('Δ ' + CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
     if trait_name == 'lwc':                        # ×10⁻³ at the colorbar top, left-anchored
-        cb.ax.text(0.0, 1.02, '(×10⁻³)', transform=cb.ax.transAxes,   # so it clears the title
+        cb.ax.text(0.0, 1.02, r'($\times$10$^{-3}$)', transform=cb.ax.transAxes,   # so it clears the title
                    fontsize=15, ha='left', va='bottom')
     # Δ-distribution histogram INSET. The layout tool renders the WHOLE histogram —
     # bars, tick numbers AND the Δ label — inside the box you drag, whereas matplotlib
@@ -245,8 +254,8 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
 figB.text(0.5, 0.975, 'Difference (Trait − PFT)', ha='center', va='top',
           fontsize=TITLE + 3, fontweight='bold')
 out_b = FIG_DIR / 'figure5b_difference'
-figB.savefig(f'{out_b}.png', dpi=300, facecolor='white')
-figB.savefig(f'{out_b}.pdf', facecolor='white')
+figB.savefig(f'{out_b}.png', dpi=600, facecolor='white')
+figB.savefig(f'{out_b}.pdf', dpi=600, facecolor='white')
 plt.close(figB)
 
 print(f'Saved: {out_a}.png / .pdf')
