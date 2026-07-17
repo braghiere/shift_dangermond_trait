@@ -60,11 +60,12 @@ PFT_COLORS = {2: '#2E7D32', 3: '#1976D2', 4: '#D32F2F'}
 # then ×1000 -> ×10⁻³ g cm⁻² (paper-standard display); LAI: m² m⁻² (×1)
 CONVERSIONS = {'chl': 1.0, 'lma': 1e4, 'lwc': (18. / 10000.) * 1000., 'lai': 1.0}
 
+# panel letters are placed separately (far left, aligned with each y-axis label)
 _panel_cfg = [
-    ('lai', '(a) Temporal Dynamics of LAI by PFT',         r'LAI (m$^2$ m$^{-2}$)'),
-    ('chl', '(b) Temporal Dynamics of Chlorophyll by PFT', r'Chlorophyll ($\mu$g cm$^{-2}$)'),
-    ('lma', '(c) Temporal Dynamics of LMA by PFT',         r'LMA (g m$^{-2}$)'),
-    ('lwc', '(d) Temporal Dynamics of LWC by PFT',         r'LWC (g cm$^{-2}$)'),   # ×10⁻³ multiplier drawn atop the y-axis
+    ('lai', 'Temporal Dynamics of LAI by PFT',         r'LAI (m$^2$ m$^{-2}$)'),
+    ('chl', 'Temporal Dynamics of Chlorophyll by PFT', r'Chlorophyll ($\mu$g cm$^{-2}$)'),
+    ('lma', 'Temporal Dynamics of LMA by PFT',         r'LMA (g m$^{-2}$)'),
+    ('lwc', 'Temporal Dynamics of LWC by PFT',         r'LWC (g cm$^{-2}$)'),   # ×10⁻³ multiplier drawn atop the y-axis
 ]
 
 
@@ -191,6 +192,14 @@ for idx, (tkey, panel_title, ylabel) in enumerate(_panel_cfg):
                     shadow=True, fontsize=14).set_zorder(4)
 
 plt.tight_layout()
+# panel letters at the far left, x-aligned with each panel's y-axis label
+fig.canvas.draw()
+for idx, ax in enumerate(axes):
+    bb = ax.yaxis.get_label().get_window_extent()
+    x_ax = ax.transAxes.inverted().transform((bb.x0, 0))[0]
+    ax.annotate(f'({chr(97 + idx)})', xy=(x_ax, 1.0), xycoords='axes fraction',
+                xytext=(0, 24), textcoords='offset points', ha='left', va='bottom',
+                fontsize=24, fontweight='bold', annotation_clip=False)
 out = FIG_DIR / 'figure3_remapcon_traits_temporal'
 fig.savefig(f'{out}.png', dpi=600, bbox_inches='tight', facecolor='white')
 fig.savefig(f'{out}.pdf', dpi=600, bbox_inches='tight', facecolor='white')
