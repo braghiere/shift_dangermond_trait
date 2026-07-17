@@ -1,13 +1,19 @@
-Figure renumbering (flattened, one file per figure)
-Figure 1 = external study-area map (not in repo)
+Figure renumbering — flattened, one file per figure (PNG + PDF)
 
-old file                                 -> new
-figure2_schematic                        -> Figure2
-figure3_remapcon_traits_temporal         -> Figure3
-figure4a                                 -> Figure4
-figure4b                                 -> Figure5
-figure4c                                 -> Figure6
-figure5a_trait_vs_pft                    -> Figure7
-figure5b_difference                      -> Figure8
-figure6a_difference_maps                 -> Figure9
-figure6b_time_series                     -> Figure10
+new figure   <-  source file
+Figure1      <-  figure1_study_area           (study-area map; PDF vector master + PPTX source)
+Figure2      <-  figure2_schematic
+Figure3      <-  figure3_remapcon_traits_temporal
+Figure4      <-  figure4a                      (seasonal histograms - Early)
+Figure5      <-  figure4b                      (seasonal histograms - Mid)
+Figure6      <-  figure4c                      (seasonal histograms - Late)
+Figure7      <-  figure5a_trait_vs_pft
+Figure8      <-  figure5b_difference
+Figure9      <-  figure6a_difference_maps
+Figure10     <-  figure6b_time_series
+
+Notes:
+- All figures: fonts embedded (no Type-3), 300-600 dpi, units in "g m^-2" style with () brackets.
+- Figure1 is a PowerPoint export (Avenir/Calibri/Helvetica Neue, embedded); not Nimbus Sans
+  like the rest -> optional font harmonization in the PPTX if family consistency is desired.
+- Manuscript text figure callouts must be updated to this numbering.

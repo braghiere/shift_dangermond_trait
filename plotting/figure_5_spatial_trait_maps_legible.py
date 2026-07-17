@@ -108,11 +108,11 @@ trait_configs = {
     # the SAME scale and gets thin PFT-boundary outlines (in the row's own dark shade)
     # so the 3 PFT patches read as separated regions without changing the colors.
     # (Diff maps in 5b keep RdBu_r via cmap_diff/vmin_diff/vmax_diff.)
-    'chl': {'label': 'Chlorophyll Content', 'unit': 'µg/cm²', 'cmap': 'YlGn',
+    'chl': {'label': 'Chlorophyll Content', 'unit': 'µg cm⁻²', 'cmap': 'YlGn',
             'cmap_diff': 'RdBu_r', 'vmin': 0, 'vmax': 80, 'vmin_diff': -30, 'vmax_diff': 30},
-    'lma': {'label': 'Leaf Mass per Area', 'unit': 'g/m²', 'cmap': 'YlOrBr',
+    'lma': {'label': 'Leaf Mass per Area', 'unit': 'g m⁻²', 'cmap': 'YlOrBr',
             'cmap_diff': 'RdBu_r', 'vmin': 0, 'vmax': 200, 'vmin_diff': -80, 'vmax_diff': 80},
-    'lwc': {'label': 'Leaf Water Content', 'unit': 'g/cm²', 'unit_raw': 'g/cm²',
+    'lwc': {'label': 'Leaf Water Content', 'unit': 'g cm⁻²', 'unit_raw': 'g cm⁻²',
             'unit_multiplier': 1000, 'cmap': 'Blues', 'cmap_diff': 'RdBu_r',
             'vmin': 0, 'vmax': 15, 'vmin_diff': -6, 'vmax_diff': 6},
 }
@@ -131,9 +131,9 @@ ASP = float((lons.max() - lons.min()) / (lats.max() - lats.min()))   # map width
 
 # two-line colorbar labels so the (rotated) titles do not overrun / overlap
 CLABEL = {
-    'chl': 'Chlorophyll\nContent (µg/cm²)',
-    'lma': 'Leaf Mass per\nArea (g/m²)',
-    'lwc': 'Leaf Water\nContent (g/cm²)',
+    'chl': 'Chlorophyll\n' r'Content ($\mu$g cm$^{-2}$)',
+    'lma': 'Leaf Mass per\n' r'Area (g m$^{-2}$)',
+    'lwc': 'Leaf Water\n' r'Content (g cm$^{-2}$)',
 }
 # Δ-distribution histogram x-axis labels (units omitted — they are on the colorbar)
 DLABEL = {'chl': 'Δ CHL', 'lma': 'Δ LMA', 'lwc': 'Δ LWC'}
