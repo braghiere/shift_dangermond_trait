@@ -28,6 +28,7 @@ import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
 from pathlib import Path
+from scipy import ndimage
 
 # Publication style: match the other figures (Nimbus Sans) and embed TrueType
 # fonts in vector output (pdf.fonttype 42) so the PDF/EPS carry no Type-3 fonts.
@@ -70,7 +71,23 @@ lats = _grid['lat'].values
 lons = _grid['lon'].values
 
 pft_map = xr.open_dataset(pft_path)['Band1'].transpose('lat', 'lon').values
-pft_mask = np.isin(pft_map, [2, 3, 4])
+pft_mask_full = np.isin(pft_map, [2, 3, 4])         # STATS mask: matches the manuscript Mean/STD
+
+
+def _largest_component(m):
+    lbl, n = ndimage.label(m)
+    if n <= 1:
+        return m
+    sizes = np.bincount(lbl.ravel())
+    sizes[0] = 0                        # ignore background
+    return lbl == int(sizes.argmax())
+
+
+# DISPLAY mask: a morphological opening strips the 1-px coastal fringe + isolated
+# ocean speckle (so no stray dots sit in the water); keeping the largest component
+# then drops anything the opening detached. Stats/histograms still use pft_mask_full,
+# so every published number stays exact while the maps render clean.
+pft_mask = _largest_component(ndimage.binary_opening(pft_mask_full, structure=np.ones((3, 3))))
 
 chl_trait, lma_trait, lwc_trait = trait['chl'], trait['lma'], trait['lwc']
 chl_pft, lma_pft, lwc_pft = pftm['chl'], pftm['lma'], pftm['lwc']
@@ -78,14 +95,19 @@ chl_diff = chl_trait - chl_pft
 lma_diff = lma_trait - lma_pft
 lwc_diff = lwc_trait - lwc_pft
 
-msk = lambda a: np.where(pft_mask, a, np.nan)
-traits_data = [
-    ('chl', msk(chl_trait), msk(chl_pft), msk(chl_diff)),
-    ('lma', msk(lma_trait), msk(lma_pft), msk(lma_diff)),
-    ('lwc', msk(lwc_trait), msk(lwc_pft), msk(lwc_diff)),
+show = lambda a: np.where(pft_mask, a, np.nan)        # cleaned mask -> plotting
+stat = lambda a: np.where(pft_mask_full, a, np.nan)   # full mask   -> Mean/STD + histograms
+traits_data = [                                        # raw arrays; masks applied per use
+    ('chl', chl_trait, chl_pft, chl_diff),
+    ('lma', lma_trait, lma_pft, lma_diff),
+    ('lwc', lwc_trait, lwc_pft, lwc_diff),
 ]
 
 trait_configs = {
+    # 5a single shared colorbar (trait scale, light/sharp). The PFT column is drawn on
+    # the SAME scale and gets thin PFT-boundary outlines (in the row's own dark shade)
+    # so the 3 PFT patches read as separated regions without changing the colors.
+    # (Diff maps in 5b keep RdBu_r via cmap_diff/vmin_diff/vmax_diff.)
     'chl': {'label': 'Chlorophyll Content', 'unit': 'µg/cm²', 'cmap': 'YlGn',
             'cmap_diff': 'RdBu_r', 'vmin': 0, 'vmax': 80, 'vmin_diff': -30, 'vmax_diff': 30},
     'lma': {'label': 'Leaf Mass per Area', 'unit': 'g/m²', 'cmap': 'YlOrBr',
@@ -160,22 +182,29 @@ for r, (trait_name, trait_data, pft_data, _diff) in enumerate(traits_data):
     mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
     y0 = 1 - TOP - r * (MH + G_ROW) - MH
     im = None
+    pft_cls = np.where(pft_mask, pft_map, np.nan)   # PFT class field (2/3/4) for boundaries
+    border_c = plt.get_cmap(config['cmap'])(0.92)   # thin boundary in the row's own dark shade
     for c, data in enumerate([trait_data, pft_data]):
         ax = figA.add_axes([COL_X[c], y0, MW, MH])
-        disp = data * mult
+        disp_raw = data * mult
+        disp = show(disp_raw)                   # cleaned mask for plotting
         im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap'], vmin=config['vmin'],
                            vmax=config['vmax'], shading='auto', rasterized=True)
+        if c == 1:                              # thin outlines between the 3 PFT patches
+            ax.contour(LON, LAT, pft_cls, levels=[2.5, 3.5], colors=[border_c],
+                       linewidths=0.2, alpha=0.4, antialiased=True)
         style_map(ax, show_lat=(c == 0), show_lon=(r == 2))
         panel_letter(ax, lettersA[r][c])
-        stats_box(ax, disp)
+        stats_box(ax, stat(disp_raw))           # Mean/STD on the full mask (matches paper)
         if r == 0:                              # extra title->map space (#2)
             ax.set_title(col_titles[c], fontsize=TITLE, fontweight='bold', pad=34)
     cax = figA.add_axes([CB_X, y0, CW, MH])     # colorbar exactly the map height (#1)
     cb = figA.colorbar(im, cax=cax)
     cb.set_label(CLABEL[trait_name], fontsize=CBAR_LBL, fontweight='bold')
     cb.ax.tick_params(labelsize=CBAR_TICK)
-    if trait_name == 'lwc':
-        cb.ax.set_title(r'($\times$10$^{-3}$)', fontsize=16, pad=6)
+    if trait_name == 'lwc':                     # ×10⁻³ at the colorbar top, left-anchored (like Fig 5b)
+        cb.ax.text(0.0, 1.02, r'($\times$10$^{-3}$)', transform=cb.ax.transAxes,
+                   fontsize=15, ha='left', va='bottom')
 
 out_a = FIG_DIR / 'figure5a_trait_vs_pft'
 figA.savefig(f'{out_a}.png', dpi=600, facecolor='white')
@@ -214,13 +243,15 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     config = trait_configs[trait_name]
     mult = config.get('unit_multiplier', 1) if trait_name == 'lwc' else 1
     x = Lb + c * (MWb + GCB + CWb + CLAB + GUNIT)
-    disp = diff_data * mult
+    disp_raw = diff_data * mult
+    disp = show(disp_raw)                    # cleaned mask for plotting
+    disp_stat = stat(disp_raw)              # full mask for Mean/STD + Δ-histogram
     ax = figB.add_axes([x, map_y, MWb, MHb])
     im = ax.pcolormesh(LON, LAT, disp, cmap=config['cmap_diff'], vmin=config['vmin_diff'],
                        vmax=config['vmax_diff'], shading='auto', rasterized=True)
     style_map(ax, show_lat=(c == 0), show_lon=True, xlim=XLIM, ylim=YLIM)
     panel_letter(ax, lettersB[c])
-    stats_box(ax, disp)
+    stats_box(ax, disp_stat)
     ax.set_title(map_titles[trait_name], fontsize=TITLE, fontweight='bold', pad=8)
     cax = figB.add_axes([x + MWb + GCB, map_y, CWb, MHb])   # colorbar == map height (#1)
     cb = figB.colorbar(im, cax=cax)
@@ -241,7 +272,7 @@ for c, (trait_name, _t, _p, diff_data) in enumerate(traits_data):
     ix, iy, iw, ih = INSET_POS
     hax = figB.add_axes([x + ix * MWb, map_y + iy * MHb, iw * MWb, ih * MHb])
     hax.patch.set_alpha(0)
-    v = disp[np.isfinite(disp) & (disp != 0)]
+    v = disp_stat[np.isfinite(disp_stat) & (disp_stat != 0)]
     hax.hist(v, bins=45, color='0.55', edgecolor='black', linewidth=0.4, density=True)
     hax.axvline(0, color='red', linestyle='--', linewidth=1.5)
     hax.axvline(np.nanmean(v), color='blue', linestyle='--', linewidth=1.5)

@@ -311,7 +311,7 @@ axB1.fill_between(_DATES, np.array(_gpp_tr_ts) - _gpp_tr_ci, np.array(_gpp_tr_ts
 axB1.plot(_DATES, _gpp_pft_ts, label='PFT', marker='s', color='orange', lw=2.4, ms=8)
 axB1.fill_between(_DATES, np.array(_gpp_pft_ts) - _gpp_pft_ci, np.array(_gpp_pft_ts) + _gpp_pft_ci, color='orange', alpha=0.18)
 axB1.text(-0.13, 1.03, '(a)', transform=axB1.transAxes, fontsize=TS_PANEL, fontweight='bold', va='bottom', ha='right')
-axB1.set_xlabel('Date', fontsize=TS_AXLBL, fontweight='bold')
+axB1.set_xlabel('2022', fontsize=TS_TICK, fontweight='normal')  # year in the month-tick style
 axB1.set_ylabel(r'GPP ($\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$)', fontsize=TS_AXLBL, fontweight='bold')
 axB1.tick_params(axis='both', labelsize=TS_TICK)
 axB1.legend(loc='best', fontsize=TS_LEG, framealpha=0.9)
@@ -362,15 +362,9 @@ for _ii, _tdate in enumerate(_DATES):
 
 _ax4_trop.scatter(_DATES, _trop_4d_vals, marker='^', color='dimgray', s=70, alpha=0.45,
                   zorder=3, label='TROPOMI ±4d', clip_on=True)
-_n_layers, _sigma_max, _alpha_inner = 12, 2.0, 0.22
-for _layer in range(_n_layers, 0, -1):
-    _s_out = _sigma_max * _layer / _n_layers
-    _s_in = _sigma_max * (_layer - 1) / _n_layers
-    _layer_alpha = float(_alpha_inner * (np.exp(-0.5 * _s_in ** 2) - np.exp(-0.5 * _s_out ** 2)))
-    _band_lo = _trop_4d_smooth - _s_out * (_trop_4d_smooth - _trop_4d_lo)
-    _band_hi = _trop_4d_smooth + _s_out * (_trop_4d_hi - _trop_4d_smooth)
-    _ax4_trop.fill_between(_DATES, _band_lo, _band_hi, color='gray',
-                           alpha=max(_layer_alpha, 0.01), zorder=2, linewidth=0)
+# clean single ±1 SEM band around the smoothed TROPOMI line (no gradient cloud)
+_ax4_trop.fill_between(_DATES, _trop_4d_lo, _trop_4d_hi, color='0.6',
+                       alpha=0.15, zorder=2, linewidth=0)
 _ax4_trop.plot(_DATES, _trop_4d_smooth, color='black', lw=2.4, ls='-', marker='D', ms=7,
                zorder=5, label='TROPOMI\nsmoothed ±SEM')
 _ax4_trop.set_ylabel(r'TROPOMI Relative SIF$_{740}$ (%)', fontsize=TS_AXLBL, fontweight='bold',
@@ -383,7 +377,7 @@ for _spine in _ax4_mod.spines.values():
 for _spine in _ax4_trop.spines.values():
     _spine.set_edgecolor('black'); _spine.set_linewidth(1.2)
 axB2.text(-0.13, 1.03, '(b)', transform=axB2.transAxes, fontsize=TS_PANEL, fontweight='bold', va='bottom', ha='right')
-_ax4_mod.set_xlabel('Date', fontsize=TS_AXLBL, fontweight='bold')
+_ax4_mod.set_xlabel('2022', fontsize=TS_TICK, fontweight='normal')  # year in the month-tick style
 _ax4_mod.tick_params(axis='x', colors='black', labelsize=TS_TICK)
 _ax4_mod.xaxis.set_major_locator(mdates.MonthLocator(interval=1))
 _ax4_mod.xaxis.set_major_formatter(mdates.DateFormatter('%b %d'))
@@ -394,7 +388,8 @@ _ax4_mod.grid(axis='y', ls='--', alpha=0.55)
 _lines_mod, _labs_mod = _ax4_mod.get_legend_handles_labels()
 _lines_trop, _labs_trop = _ax4_trop.get_legend_handles_labels()
 _ax4_mod.legend(_lines_mod + _lines_trop, _labs_mod + _labs_trop, loc='lower left',
-                fontsize=12, framealpha=0.95, edgecolor='gray', borderpad=0.6)
+                fontsize=12, framealpha=0.95, edgecolor='gray', borderpad=0.4,
+                labelspacing=0.3, handlelength=1.4, handletextpad=0.5)
 
 figB.tight_layout()
 figB.subplots_adjust(wspace=0.46)
