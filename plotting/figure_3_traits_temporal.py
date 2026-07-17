@@ -26,9 +26,9 @@ warnings.filterwarnings('ignore')
 
 plt.rcParams.update({
     'font.family': 'Nimbus Sans',
-    'font.size': 14, 'axes.labelsize': 14, 'axes.titlesize': 14,
-    'xtick.labelsize': 12, 'ytick.labelsize': 12,
-    'legend.fontsize': 12, 'axes.labelweight': 'bold',
+    'font.size': 18, 'axes.labelsize': 22, 'axes.titlesize': 21,
+    'xtick.labelsize': 20, 'ytick.labelsize': 20,
+    'legend.fontsize': 17, 'axes.labelweight': 'bold',
     'mathtext.fontset': 'custom', 'mathtext.rm': 'Nimbus Sans',
     'mathtext.it': 'Nimbus Sans:italic', 'mathtext.bf': 'Nimbus Sans:bold',
     'pdf.fonttype': 42, 'ps.fonttype': 42,   # embed TrueType, no Type-3
@@ -64,7 +64,7 @@ _panel_cfg = [
     ('lai', '(a) Temporal Dynamics of LAI by PFT',         r'Leaf Area Index (LAI) [m$^2$ m$^{-2}$]'),
     ('chl', '(b) Temporal Dynamics of Chlorophyll by PFT', r'Chlorophyll [$\mu$g cm$^{-2}$]'),
     ('lma', '(c) Temporal Dynamics of LMA by PFT',         r'LMA [g m$^{-2}$]'),
-    ('lwc', '(d) Temporal Dynamics of LWC by PFT',         r'LWC ($\times$10$^{-3}$ g cm$^{-2}$)'),
+    ('lwc', '(d) Temporal Dynamics of LWC by PFT',         r'LWC [g cm$^{-2}$]'),   # ×10⁻³ multiplier drawn atop the y-axis
 ]
 
 
@@ -155,36 +155,40 @@ for idx, (tkey, panel_title, ylabel) in enumerate(_panel_cfg):
         col = PFT_COLORS[p]
         mean_v, p25_v, p75_v = stats[tkey]['mean'][p], stats[tkey]['p25'][p], stats[tkey]['p75'][p]
         ax.fill_between(DATES, p25_v, p75_v, color=col, alpha=0.2, linewidth=0, zorder=2)
-        ax.plot(DATES, mean_v, '-o', color=col, lw=2.5, ms=6, markeredgecolor='white',
-                markeredgewidth=1, label=PFT_LABELS[p], zorder=3)
-        ax.axhline(np.nanmean(mean_v), color=col, lw=1.8, ls='-', alpha=0.75, zorder=3)
-    ax.set_xlabel('Date', fontsize=14, fontweight='bold')
-    ax.set_ylabel(ylabel, fontsize=14, fontweight='bold')
-    ax.set_title(panel_title, fontsize=14, fontweight='bold', loc='left', pad=10)
+        ax.plot(DATES, mean_v, '-o', color=col, lw=3.2, ms=8.5, markeredgecolor='white',
+                markeredgewidth=1.2, label=PFT_LABELS[p], zorder=3)
+        ax.axhline(np.nanmean(mean_v), color=col, lw=2.4, ls='-', alpha=0.75, zorder=3)
+    if idx >= 2:                                 # only the bottom row keeps the 'Date' label
+        ax.set_xlabel('Date', fontsize=22, fontweight='bold')
+    ax.set_ylabel(ylabel, fontsize=22, fontweight='bold')
+    ax.set_title(panel_title, fontsize=21, fontweight='bold', loc='left', pad=24)
+    if tkey == 'lwc':                            # ×10⁻³ multiplier at the top of the y-axis
+        ax.text(0.0, 1.01, r'$\times$10$^{-3}$', transform=ax.transAxes,
+                ha='left', va='bottom', fontsize=16, fontweight='bold')
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
     ax.xaxis.set_major_locator(MaxNLocator(nbins=7))
     plt.setp(ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
     ax.grid(True, alpha=0.3, linestyle='--', linewidth=0.5, zorder=1)
     ax.set_xlim(DATES[0] - pd.Timedelta(days=3), DATES[-1] + pd.Timedelta(days=3))
-    ax.legend(loc='upper right', frameon=True, fancybox=True, shadow=True, fontsize=11).set_zorder(4)
+    ax.legend(loc='upper right', frameon=True, fancybox=True, shadow=True, fontsize=17).set_zorder(4)
 
     if tkey == 'lai' and era5_dates is not None:
         ax_p = ax.twinx()
         ax_p.bar(era5_dates, era5_precip, width=20, color='#1976D2', alpha=0.25,
                  label='Precip.', zorder=1, align='center')
-        ax_p.set_ylabel('Precipitation [mm/month]', fontsize=12, color='#1976D2', fontweight='bold')
-        ax_p.tick_params(axis='y', labelcolor='#1976D2', labelsize=10)
+        ax_p.set_ylabel('Precipitation [mm/month]', fontsize=17, color='#1976D2', fontweight='bold')
+        ax_p.tick_params(axis='y', labelcolor='#1976D2', labelsize=15)
         ax_p.set_ylim(0, max(era5_precip) * 2.5)
         ax_t = ax.twinx()
-        ax_t.spines['right'].set_position(('outward', 60))
-        ax_t.plot(era5_dates, era5_temp, color='#FBC02D', lw=2.0, marker='s', ms=4,
-                  markeredgecolor='white', markeredgewidth=0.5, label='Temp.', alpha=0.9, zorder=2)
-        ax_t.set_ylabel('Temperature [°C]', fontsize=12, color='#FBC02D', fontweight='bold')
-        ax_t.tick_params(axis='y', labelcolor='#FBC02D', labelsize=10)
+        ax_t.spines['right'].set_position(('outward', 66))
+        ax_t.plot(era5_dates, era5_temp, color='#FBC02D', lw=2.6, marker='s', ms=6,
+                  markeredgecolor='white', markeredgewidth=0.6, label='Temp.', alpha=0.9, zorder=2)
+        ax_t.set_ylabel('Temperature [°C]', fontsize=17, color='#FBC02D', fontweight='bold')
+        ax_t.tick_params(axis='y', labelcolor='#FBC02D', labelsize=15)
         lp, llp = ax_p.get_legend_handles_labels()
         lt, llt = ax_t.get_legend_handles_labels()
         ax_p.legend(lp + lt, llp + llt, loc='upper left', frameon=True, fancybox=True,
-                    shadow=True, fontsize=10).set_zorder(4)
+                    shadow=True, fontsize=14).set_zorder(4)
 
 plt.tight_layout()
 out = FIG_DIR / 'figure3_remapcon_traits_temporal'
