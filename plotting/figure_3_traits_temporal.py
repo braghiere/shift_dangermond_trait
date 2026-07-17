@@ -61,10 +61,10 @@ PFT_COLORS = {2: '#2E7D32', 3: '#1976D2', 4: '#D32F2F'}
 CONVERSIONS = {'chl': 1.0, 'lma': 1e4, 'lwc': (18. / 10000.) * 1000., 'lai': 1.0}
 
 _panel_cfg = [
-    ('lai', '(a) Temporal Dynamics of LAI by PFT',         r'Leaf Area Index (LAI) [m$^2$ m$^{-2}$]'),
-    ('chl', '(b) Temporal Dynamics of Chlorophyll by PFT', r'Chlorophyll [$\mu$g cm$^{-2}$]'),
-    ('lma', '(c) Temporal Dynamics of LMA by PFT',         r'LMA [g m$^{-2}$]'),
-    ('lwc', '(d) Temporal Dynamics of LWC by PFT',         r'LWC [g cm$^{-2}$]'),   # ×10⁻³ multiplier drawn atop the y-axis
+    ('lai', '(a) Temporal Dynamics of LAI by PFT',         r'LAI (m$^2$ m$^{-2}$)'),
+    ('chl', '(b) Temporal Dynamics of Chlorophyll by PFT', r'Chlorophyll ($\mu$g cm$^{-2}$)'),
+    ('lma', '(c) Temporal Dynamics of LMA by PFT',         r'LMA (g m$^{-2}$)'),
+    ('lwc', '(d) Temporal Dynamics of LWC by PFT',         r'LWC (g cm$^{-2}$)'),   # ×10⁻³ multiplier drawn atop the y-axis
 ]
 
 
@@ -176,14 +176,14 @@ for idx, (tkey, panel_title, ylabel) in enumerate(_panel_cfg):
         ax_p = ax.twinx()
         ax_p.bar(era5_dates, era5_precip, width=20, color='#1976D2', alpha=0.25,
                  label='Precip.', zorder=1, align='center')
-        ax_p.set_ylabel('Precipitation [mm/month]', fontsize=17, color='#1976D2', fontweight='bold')
+        ax_p.set_ylabel('Precipitation (mm/month)', fontsize=17, color='#1976D2', fontweight='bold')
         ax_p.tick_params(axis='y', labelcolor='#1976D2', labelsize=15)
         ax_p.set_ylim(0, max(era5_precip) * 2.5)
         ax_t = ax.twinx()
         ax_t.spines['right'].set_position(('outward', 66))
         ax_t.plot(era5_dates, era5_temp, color='#FBC02D', lw=2.6, marker='s', ms=6,
                   markeredgecolor='white', markeredgewidth=0.6, label='Temp.', alpha=0.9, zorder=2)
-        ax_t.set_ylabel('Temperature [°C]', fontsize=17, color='#FBC02D', fontweight='bold')
+        ax_t.set_ylabel('Temperature (°C)', fontsize=17, color='#FBC02D', fontweight='bold')
         ax_t.tick_params(axis='y', labelcolor='#FBC02D', labelsize=15)
         lp, llp = ax_p.get_legend_handles_labels()
         lt, llt = ax_t.get_legend_handles_labels()
