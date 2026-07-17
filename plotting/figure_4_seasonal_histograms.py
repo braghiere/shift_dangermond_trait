@@ -27,6 +27,7 @@ plt.rcParams.update({
     'legend.fontsize': 11, 'axes.labelweight': 'bold',
     'mathtext.fontset': 'custom', 'mathtext.rm': 'Nimbus Sans',
     'mathtext.it': 'Nimbus Sans:italic', 'mathtext.bf': 'Nimbus Sans:bold',
+    'pdf.fonttype': 42, 'ps.fonttype': 42,   # embed TrueType, no Type-3
 })
 
 BASE = Path('/home/renatob/data/FluoData1/aviris_dangermond')
@@ -136,8 +137,8 @@ def make_figure(season):
     fig.suptitle(subtitle, fontsize=20, fontweight='bold', y=0.99)
     fig.subplots_adjust(left=0.07, right=0.985, top=0.82, bottom=0.17, wspace=0.26)
     stem = FIG_DIR / f'figure4{FIG_PANEL[season]}'
-    fig.savefig(f'{stem}.png', dpi=300, bbox_inches='tight', facecolor='white')
-    fig.savefig(f'{stem}.pdf', bbox_inches='tight', facecolor='white')
+    fig.savefig(f'{stem}.png', dpi=600, bbox_inches='tight', facecolor='white')
+    fig.savefig(f'{stem}.pdf', dpi=600, bbox_inches='tight', facecolor='white')
     plt.close(fig)
     print(f'saved Figure {FIG_LABEL[season]} ({season}) -> {stem}.png / .pdf')
 

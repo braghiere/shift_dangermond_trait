@@ -1,0 +1,13 @@
+Figure renumbering (flattened, one file per figure)
+Figure 1 = external study-area map (not in repo)
+
+old file                                 -> new
+figure2_schematic                        -> Figure2
+figure3_remapcon_traits_temporal         -> Figure3
+figure4a                                 -> Figure4
+figure4b                                 -> Figure5
+figure4c                                 -> Figure6
+figure5a_trait_vs_pft                    -> Figure7
+figure5b_difference                      -> Figure8
+figure6a_difference_maps                 -> Figure9
+figure6b_time_series                     -> Figure10

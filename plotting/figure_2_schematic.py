@@ -51,9 +51,14 @@ pft = orient(xr.open_dataset(PFT_FILE)['Band1'].values, nlat, nlon)
 mask = np.isin(pft, [2, 3, 4])
 mp = lambda a: np.where(mask, a, np.nan)
 
-chl = mp(chl_ds['chl'].mean('time').values)
-lma = mp(xr.open_dataset(TRAIT / 'lma_aviris_dangermond_clima_fit_reg.nc')['lma'].mean('time').values * 1e4)
-lwc = mp(xr.open_dataset(TRAIT / 'lwc_aviris_dangermond_clima_fit_reg.nc')['lwc'].mean('time').values * 0.0018 * 100)
+# trait maps from the remapcon dataset (matches Figs 4/5; identical grid to the _reg files)
+RC = BASE / 'traits' / 'datasets' / 'clima_fit_prescribed_lai_ci_remapcon'
+_rc_mean = lambda t: np.nanmean(np.stack([
+    xr.open_dataset(RC / f'shift_traits_time_{i:02d}_remapcon.nc')[t].transpose('lat', 'lon').values
+    for i in range(13)]), axis=0)
+chl = mp(_rc_mean('chl'))
+lma = mp(_rc_mean('lma') * 1e4)
+lwc = mp(_rc_mean('lwc') * 0.0018 * 1000)          # ×10⁻³ g/cm² (standardized with Figs 4/5)
 g, s = [], []
 for t in range(13):
     f = FLUX / f'shift_fluxes_day_{t:02d}_clima_fit_reg_jmax.nc'
@@ -136,7 +141,7 @@ def add_map(x, b, data, cmap, vmin, vmax, name, unit, show_lat=False, show_lon=F
 # Trait column (left)
 add_map(LX, 0.645, chl, 'YlGn',   0, 80,  'Chlorophyll Content', r'$\mu$g cm$^{-2}$',       show_lat=True, deco=True)
 add_map(LX, 0.353, lma, 'YlOrBr', 0, 250, 'Leaf Mass per Area',  r'g m$^{-2}$',             show_lat=True)
-add_map(LX, 0.061, lwc, 'Blues',  0, 1.5, 'Leaf Water Content',  r'g cm$^{-2}$ ($\times$10$^{-2}$)', show_lat=True, show_lon=True)
+add_map(LX, 0.061, lwc, 'Blues',  0, 15, 'Leaf Water Content',  r'g cm$^{-2}$ ($\times$10$^{-3}$)', show_lat=True, show_lon=True)
 # Flux column (right) — mirrors the trait column's full height
 add_map(RX, 0.553, gpp, 'viridis', 0, 12,  'GPP',        r'$\mu$mol CO$_2$ m$^{-2}$ s$^{-1}$', deco=True)
 add_map(RX, 0.153, sif, 'plasma',  0, 1.5, 'SIF$_{740}$', r'mW m$^{-2}$ sr$^{-1}$ nm$^{-1}$',  show_lon=True, cbpad=5)
