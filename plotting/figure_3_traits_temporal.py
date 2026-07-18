@@ -63,7 +63,7 @@ CONVERSIONS = {'chl': 1.0, 'lma': 1e4, 'lwc': (18. / 10000.) * 1000., 'lai': 1.0
 # panel letters are placed separately (far left, aligned with each y-axis label)
 _panel_cfg = [
     ('lai', 'Temporal Dynamics of LAI by PFT',         r'LAI (m$^2$ m$^{-2}$)'),
-    ('chl', 'Temporal Dynamics of Chlorophyll by PFT', r'Chlorophyll ($\mu$g cm$^{-2}$)'),
+    ('chl', 'Temporal Dynamics of CHL by PFT',         r'CHL ($\mu$g cm$^{-2}$)'),
     ('lma', 'Temporal Dynamics of LMA by PFT',         r'LMA (g m$^{-2}$)'),
     ('lwc', 'Temporal Dynamics of LWC by PFT',         r'LWC (g cm$^{-2}$)'),   # ×10⁻³ multiplier drawn atop the y-axis
 ]
