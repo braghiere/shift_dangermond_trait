@@ -74,6 +74,22 @@ Unchanged figure references (correctly point to same figures): Figure 1 (study a
 - **#11** Assemble Appendix S1 as a single PDF (`Appendix_S1`), fix running head, add
   journal/title/authors on page 1.
 
+## Second review pass (editorial polish)
+
+- **Removed 3 duplicated citations** that were hidden inside the Mendeley fields (only visible
+  after flattening): "(The Nature Conservancy, 2022)", "(Kelley, 1999; Nocedal & Wright, 1999)",
+  "(Clark, 2016)".
+- **Stray symbols fixed:** "(Farquhar et al., 1980)(," → "),"; "G(θ) ((Ross, 1981)" → "(Ross, 1981)".
+- **Double spaces** collapsed throughout (equation-alignment spacing preserved).
+- **Affiliation 1:** added "Division of Geological and Planetary Sciences".
+- **Figure captions** now each define their abbreviations (Fig 1 PFT; Figs 5/6/8 CHL/LMA/LWC/PFT;
+  Fig 9 PFT; Fig 10 GPP/SIF740/TROPOMI). Superscripts/subscripts verified intact.
+
+Still pending your decision:
+- **Equations** are numbered (1.1)/(1.2)/(2.1)/(2.2); editor wants whole numbers (1)–(4), plus
+  update the one in-text reference "Eq. (2.2)" → "Eq. (4)".
+- **Affiliation 2** (JPL) is missing "CA".
+
 ## Tracked-changes version
 
 This is a clean corrected file. For a tracked-changes copy, open Word →
