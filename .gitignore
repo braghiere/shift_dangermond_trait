@@ -1,3 +1,36 @@
 .DS_Store
 __pycache__/
 *.pyc
+
+# --- Keep this repository code-only. Heavy/editorial artifacts are kept locally. ---
+# Raw datasets are archived at the Caltech Data DOI (10.22002/z15fj-44h89); the
+# CliMA Land / Emerald model is archived at Zenodo (10.5281/zenodo.21479295).
+
+# Editorial / manuscript (local only)
+documents/
+*.docx
+*.doc
+
+# Fonts (only used for figure rendering)
+fonts/
+*.otf
+*.ttf
+
+# Figure outputs
+figures/
+figures_ready/
+notebooks/figures/
+*.png
+*.pdf
+*.pptx
+
+# Tabular data / results (source data lives at the Caltech Data DOI)
+validation_data/
+*.csv
+analysis_summary.txt
+
+# Manuscript-editing utilities (local only)
+apply_edits*.py
+fix_appendix.py
+fix_refs*.py
+fix_review.py
