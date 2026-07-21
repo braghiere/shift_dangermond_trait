@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 
 # --- Keep this repository code-only. Heavy/editorial artifacts are kept locally. ---
-# Raw datasets are archived at the Caltech Data DOI (10.22002/z15fj-44h89); the
+# Raw datasets are archived at the Caltech Data DOI (10.22002/7xgrn-qtc49); the
 # CliMA Land / Emerald model is archived at Zenodo (10.5281/zenodo.21479295).
 
 # Editorial / manuscript (local only)

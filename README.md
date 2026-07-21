@@ -55,7 +55,7 @@ cd shift_dangermond_trait
 ```
 ## Data Availability 
 
-The datasets used in this study are accessible at the Caltech Data Library under https://doi.org/10.22002/z15fj-44h89, including the SHIFT AVIRIS-NG dataset for the Dangermond Preserve at 30m resolution, which provides detailed spectral reflectance information across 399 wavelengths. This also includes TROPOMI sun-induced fluorescence data at 740 nm, CliMA Land model outputs of ecosystem fluxes, and trait variations for different plant functional types. These datasets cover the period from February to May 2022.
+The datasets used in this study are accessible at the Caltech Data Library under https://doi.org/10.22002/7xgrn-qtc49, including the SHIFT AVIRIS-NG dataset for the Dangermond Preserve at 30m resolution, which provides detailed spectral reflectance information across 399 wavelengths. This also includes TROPOMI sun-induced fluorescence data at 740 nm, CliMA Land model outputs of ecosystem fluxes, and trait variations for different plant functional types. These datasets cover the period from February to May 2022.
 
 The Level 2A (L2A) unrectified surface reflectance images from NASA's Airborne Visible / Infrared Imaging Spectrometer-Next Generation (AVIRIS-NG) instrument, collected as part of the Surface Biology and Geology High-Frequency Time Series (SHIFT) campaign during February to May 2022, including reflected radiance at 5-nm intervals in the Visible to Shortwave Infrared (VSWIR) spectral range from 380-2510 nm, can be found at https://doi.org/10.3334/ORNLDAAC/2183 (Brodrick et al., 2023).
 
