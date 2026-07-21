@@ -61,7 +61,7 @@ The Level 2A (L2A) unrectified surface reflectance images from NASA's Airborne V
 
 The California Multi-Source Vegetation Layer, specifically depicting Wildlife Habitat Relationship classes (WHRTYPE) (California Department of Forestry and Fire Protection, 2014), is available at https://gis.data.ca.gov/maps/CALFIRE-Forestry::california-vegetation-whrtype/about.
 
-The CliMA Land model (the Emerald Julia package, version 0.3.0; developed by Y. Wang and adapted from CliMA Land) used to simulate surface hyperspectral reflectance and transmittance, energy, and carbon fluxes is archived at Zenodo under https://doi.org/10.5281/zenodo.21479295 and at https://github.com/braghiere/Land (release tag shift-dangermond-clima-land). The model is actively developed at https://github.com/silicormosia/Emerald.jl, and the CliMA Land project is hosted at https://github.com/CliMA/Land.
+The CliMA Land model (the Emerald Julia package, version 0.3.0; adapted from CliMA Land) used to simulate surface hyperspectral reflectance and transmittance, energy, and carbon fluxes is archived at Zenodo under https://doi.org/10.5281/zenodo.21479295 and at https://github.com/braghiere/Land (release tag shift-dangermond-clima-land). The CliMA Land project is hosted at https://github.com/CliMA/Land.
 
 The code used in the analysis presented in this paper is available at https://github.com/braghiere/shift_dangermond_trait/ (see REPRODUCE.md for environment and reproduction instructions).
 
