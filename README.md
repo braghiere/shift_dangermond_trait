@@ -70,7 +70,7 @@ The code used in the analysis presented in this paper is available at https://gi
 
 Brodrick, P., R. Pavlick, M. Bernas, J.W. Chapman, R. Eckert, M. Helmlinger, M. Hess-Flores, L.M. Rios, F.D. Schneider, M.M. Smyth, M. Eastwood, R.O. Green, D.R. Thompson, K.D. Chadwick, & D.S. Schimel. (2023). SHIFT: AVIRIS-NG L2A Unrectified Reflectance. ORNL DAAC. https://doi.org/10.3334/ORNLDAAC/2183
 
-Chadwick, K. D., Davis, F., Miner, K. R., Pavlick, R., Reynolds, M., Townsend, P. A., Brodrick, P. G., Ade, C., Allen, J., Anderegg, L., Angel, Y., Boving, I., Byrd, K. B., Campbell, P., Carberry, L., Cavanaugh, K. C., Cavanaugh, K. C., Easterday, K., Eckert, R., … Schimel, D. (2024). Unlocking Ecological Insights from Subseasonal Visible-to-Shortwave Infrared Imaging Spectroscopy: The SHIFT Campaign. Ecosphere.
+Chadwick, K. D., Davis, F., Miner, K. R., Pavlick, R., Reynolds, M., Townsend, P. A., Brodrick, P. G., Ade, C., Allen, J., Anderegg, L., Angel, Y., Boving, I., Byrd, K. B., Campbell, P., Carberry, L., Cavanaugh, K. C., Cavanaugh, K. C., Easterday, K., Eckert, R., … Schimel, D. (2025). Unlocking Ecological Insights from Sub-Seasonal Visible-to-Shortwave Infrared Imaging Spectroscopy: The SHIFT Campaign. Ecosphere, 16(3), e70194. https://doi.org/10.1002/ecs2.70194
 
 Queally, N., Davis, F. W., Chadwick, K. D., Ade, C., Anderegg, L., Angel, Y., Baker, B., Boving, I., Braghiere, R. K., Brodrick, P., Campbell, P., Cryer, J., Cushman, K. C., Dao, P. D., Dibartolo, A., Eckert, R., Grant, K., Heberlein, B., Johnson, M., … Schimel, D. S. (2024). SHIFT: Vegetation Plot Characterization, Santa Barbara County, CA, 2022. ORNL Distributed Active Archive Center. https://doi.org/10.3334/ORNLDAAC/2295
 
