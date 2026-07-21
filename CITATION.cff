@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: >-
+  If you use this analysis code, please cite the associated paper and, where relevant,
+  the archived CliMA Land (Emerald v0.3.0) model.
+title: >-
+  Analysis code for "Shifting from plant functional types to traits: Enhancing
+  biodiversity representation in land surface models" (SHIFT Dangermond)
+type: software
+license: Apache-2.0
+repository-code: "https://github.com/braghiere/shift_dangermond_trait"
+authors:
+  - family-names: Braghiere
+    given-names: Renato K.
+    email: renato.braghiere@gmail.com
+  - family-names: Wang
+    given-names: Yujie
+  - family-names: Liu
+    given-names: Ke
+  - family-names: Chadwick
+    given-names: K. Dana
+  - family-names: Brodrick
+    given-names: Philip G.
+  - family-names: Shiklomanov
+    given-names: Alexey N.
+  - family-names: Schneider
+    given-names: Fabian D.
+  - family-names: Ferraz
+    given-names: Antonio
+  - family-names: Zheng
+    given-names: Ting
+  - family-names: Queally
+    given-names: Natalie
+  - family-names: Townsend
+    given-names: Philip A.
+  - family-names: Schimel
+    given-names: David
+  - family-names: Frankenberg
+    given-names: Christian
+references:
+  - type: article
+    title: >-
+      Shifting from plant functional types to traits: Enhancing biodiversity
+      representation in land surface models
+    authors:
+      - family-names: Braghiere
+        given-names: Renato K.
+    journal: Ecosphere
+    year: 2026
+    notes: "Manuscript ECS25-0887.R1 (accepted). Author list abbreviated."
+  - type: article
+    title: >-
+      Unlocking Ecological Insights from Sub-Seasonal Visible-to-Shortwave Infrared
+      Imaging Spectroscopy: The SHIFT Campaign
+    authors:
+      - family-names: Chadwick
+        given-names: K. Dana
+    journal: Ecosphere
+    year: 2025
+    doi: 10.1002/ecs2.70194
+    notes: "Ecosphere 16(3), e70194. Author list abbreviated."
